@@ -1,0 +1,2307 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>B.almetr | سيستم التحضير والإدارة العامة</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <style>
+      :root {
+        --bg-main: #051224;
+        --bg-card: #091d36;
+        --bg-input: #0d2645;
+        --border: rgba(45, 212, 191, 0.22);
+        --border-strong: rgba(45, 212, 191, 0.55);
+        --primary: #14b8a6;
+        --primary-bright: #2dd4bf;
+        --gold: #f5b041;
+        --danger: #fb7185;
+        --success: #34d399;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --sidebar-collapsed: 68px;
+        --sidebar-expanded: 252px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Cairo", sans-serif;
+        background: radial-gradient(circle at top right, #0b2444 0%, var(--bg-main) 65%);
+        color: var(--text-main);
+        min-height: 100vh;
+        overflow-x: hidden;
+      }
+
+      /* Watermark */
+      .bg-watermark {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        opacity: 0.035;
+        z-index: 0;
+      }
+      .bg-watermark img {
+        max-width: 340px;
+        width: 55%;
+      }
+
+      /* Collapsible Hover Sidebar (RTL Right Side) */
+      .hover-sidebar {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: var(--sidebar-collapsed);
+        background: rgba(6, 20, 39, 0.96);
+        backdrop-filter: blur(14px);
+        border-left: 1px solid var(--border);
+        z-index: 200;
+        display: flex;
+        flex-direction: column;
+        transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1), transform 0.24s ease;
+        overflow: hidden;
+        box-shadow: -8px 0 30px rgba(0, 0, 0, 0.42);
+      }
+
+      @media (min-width: 821px) {
+        .hover-sidebar:hover {
+          width: var(--sidebar-expanded);
+        }
+        body.sidebar-active .main-shell {
+          margin-right: var(--sidebar-collapsed);
+        }
+      }
+
+      .sidebar-brand {
+        height: 64px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 0 15px;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+      }
+      .sidebar-brand-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, rgba(45, 212, 191, 0.22), rgba(245, 176, 65, 0.18));
+        border: 1px solid var(--border-strong);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.15rem;
+        flex-shrink: 0;
+      }
+      .sidebar-brand-text {
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.18s ease;
+      }
+      .hover-sidebar:hover .sidebar-brand-text,
+      .hover-sidebar.mobile-open .sidebar-brand-text {
+        opacity: 1;
+      }
+      .sidebar-brand-text strong {
+        display: block;
+        font-size: 0.92rem;
+        color: var(--primary-bright);
+      }
+      .sidebar-brand-text span {
+        display: block;
+        font-size: 0.68rem;
+        color: var(--text-muted);
+      }
+
+      .sidebar-nav {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding: 10px 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .sidebar-group-title {
+        font-size: 0.68rem;
+        font-weight: 900;
+        color: var(--gold);
+        padding: 8px 10px 3px;
+        white-space: nowrap;
+        opacity: 0;
+        height: 0;
+        overflow: hidden;
+        transition: opacity 0.18s ease, height 0.18s ease;
+      }
+      .hover-sidebar:hover .sidebar-group-title,
+      .hover-sidebar.mobile-open .sidebar-group-title {
+        opacity: 0.9;
+        height: auto;
+      }
+
+      .side-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid transparent;
+        border-radius: 12px;
+        background: transparent;
+        color: var(--text-muted);
+        font-family: inherit;
+        font-size: 0.84rem;
+        font-weight: 800;
+        cursor: pointer;
+        text-align: right;
+        white-space: nowrap;
+        transition: all 0.16s ease;
+      }
+      .side-item .s-ic {
+        width: 26px;
+        text-align: center;
+        font-size: 1.12rem;
+        flex-shrink: 0;
+      }
+      .side-item .s-lbl {
+        opacity: 0;
+        transition: opacity 0.16s ease;
+      }
+      .hover-sidebar:hover .side-item .s-lbl,
+      .hover-sidebar.mobile-open .side-item .s-lbl {
+        opacity: 1;
+      }
+      .side-item:hover {
+        background: rgba(45, 212, 191, 0.1);
+        color: #fff;
+      }
+      .side-item.active {
+        background: linear-gradient(90deg, rgba(20, 184, 166, 0.22), rgba(45, 212, 191, 0.1));
+        border-color: var(--border-strong);
+        color: var(--primary-bright);
+      }
+
+      .sidebar-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 10, 22, 0.72);
+        z-index: 190;
+      }
+      .sidebar-backdrop.show {
+        display: block;
+      }
+
+      /* Main Shell */
+      .main-shell {
+        position: relative;
+        z-index: 1;
+        min-height: 100vh;
+        padding: 14px 16px 36px;
+        max-width: 1280px;
+        margin: 0 auto;
+        transition: margin-right 0.24s ease;
+      }
+
+      .top-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        background: rgba(9, 29, 54, 0.9);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 10px 14px;
+        margin-bottom: 12px;
+      }
+      .brand-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .brand-logo-img {
+        height: 34px;
+        width: auto;
+        object-fit: contain;
+      }
+      .mobile-menu-btn {
+        display: none;
+        padding: 7px 11px;
+        border-radius: 10px;
+        border: 1px solid var(--border-strong);
+        background: rgba(45, 212, 191, 0.14);
+        color: var(--primary-bright);
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 900;
+        cursor: pointer;
+      }
+
+      .sync-badge {
+        font-size: 0.74rem;
+        font-weight: 800;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: rgba(52, 211, 153, 0.15);
+        color: #6ee7b7;
+        border: 1px solid rgba(52, 211, 153, 0.35);
+      }
+      .sync-badge.syncing {
+        background: rgba(245, 176, 65, 0.16);
+        color: #fcd34d;
+        border-color: rgba(245, 176, 65, 0.4);
+      }
+
+      .exh-bar {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        background: rgba(9, 29, 54, 0.8);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 9px 12px;
+        margin-bottom: 14px;
+      }
+      .exh-pills {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .exh-pill {
+        padding: 6px 12px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-muted);
+        font-family: inherit;
+        font-size: 0.78rem;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .exh-pill.active {
+        background: var(--primary);
+        color: #041523;
+        border-color: var(--primary-bright);
+      }
+
+      /* Cards, Inputs, Buttons, Tables */
+      .card {
+        background: rgba(9, 29, 54, 0.92);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 16px;
+        margin-bottom: 14px;
+      }
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(45, 212, 191, 0.14);
+      }
+      .card-title {
+        font-size: 1rem;
+        font-weight: 900;
+        color: var(--primary-bright);
+      }
+
+      .kpi-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .kpi-card {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        padding: 12px;
+        text-align: center;
+      }
+      .kpi-card .label {
+        font-size: 0.74rem;
+        color: var(--text-muted);
+        font-weight: 700;
+      }
+      .kpi-card .val {
+        font-size: 1.45rem;
+        font-weight: 900;
+        margin-top: 3px;
+      }
+
+      .form-control {
+        width: 100%;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: #fff;
+        font-family: inherit;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 9px 11px;
+        outline: none;
+      }
+      .form-control:focus {
+        border-color: var(--primary-bright);
+      }
+      .form-label {
+        display: block;
+        font-size: 0.77rem;
+        font-weight: 800;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+      .grid-2 {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+      }
+      .grid-4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 8px 13px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        font-family: inherit;
+        font-size: 0.82rem;
+        font-weight: 800;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+      .btn:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+      }
+      .btn-primary {
+        background: var(--primary);
+        color: #031522;
+      }
+      .btn-gold {
+        background: var(--gold);
+        color: #1f1302;
+      }
+      .btn-success {
+        background: var(--success);
+        color: #041d15;
+      }
+      .btn-danger {
+        background: rgba(251, 113, 133, 0.16);
+        color: #fda4af;
+        border-color: rgba(251, 113, 133, 0.45);
+      }
+      .btn-outline {
+        background: var(--bg-input);
+        color: #e2e8f0;
+        border-color: var(--border);
+      }
+      .btn-sm {
+        padding: 5px 9px;
+        font-size: 0.75rem;
+      }
+      .btn-block {
+        width: 100%;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 0.73rem;
+        font-weight: 800;
+        background: rgba(148, 163, 184, 0.16);
+        color: #e2e8f0;
+      }
+      .badge-mint {
+        background: rgba(45, 212, 191, 0.18);
+        color: #5eead4;
+      }
+      .badge-gold {
+        background: rgba(245, 176, 65, 0.18);
+        color: #fcd34d;
+      }
+      .badge-success {
+        background: rgba(52, 211, 153, 0.18);
+        color: #6ee7b7;
+      }
+      .badge-danger {
+        background: rgba(251, 113, 133, 0.18);
+        color: #fda4af;
+      }
+
+      .chips-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+      }
+      .chip-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 6px 11px;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        color: var(--text-muted);
+        font-family: inherit;
+        font-size: 0.76rem;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .chip-btn.selected {
+        background: rgba(20, 184, 166, 0.22);
+        border-color: var(--primary-bright);
+        color: #5eead4;
+      }
+
+      .alert-banner-red {
+        background: rgba(239, 68, 68, 0.14);
+        border: 1.5px solid rgba(251, 113, 133, 0.65);
+        color: #fecdd3;
+        border-radius: 12px;
+        padding: 11px 14px;
+        margin-bottom: 12px;
+        font-size: 0.82rem;
+        font-weight: 800;
+      }
+
+      .table-responsive {
+        overflow-x: auto;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+      th,
+      td {
+        padding: 10px 10px;
+        text-align: right;
+        border-bottom: 1px solid rgba(45, 212, 191, 0.1);
+      }
+      th {
+        background: rgba(13, 38, 69, 0.92);
+        color: var(--primary-bright);
+        font-weight: 900;
+        white-space: nowrap;
+      }
+
+      .prep-section {
+        display: none;
+      }
+      .prep-section.active {
+        display: block;
+      }
+
+      .login-wrap {
+        max-width: 440px;
+        margin: 60px auto;
+      }
+
+      .access-user-card {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 13px;
+        padding: 12px;
+        margin-bottom: 10px;
+      }
+      .access-user-card.has-access {
+        border-color: var(--border-strong);
+        background: rgba(13, 45, 58, 0.45);
+      }
+
+      /* Modal */
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 10, 22, 0.78);
+        z-index: 300;
+        align-items: center;
+        justify-content: center;
+        padding: 14px;
+      }
+      .modal-overlay.show {
+        display: flex;
+      }
+      .modal-box {
+        width: 100%;
+        max-width: 580px;
+        max-height: 90vh;
+        overflow-y: auto;
+        background: var(--bg-card);
+        border: 1px solid var(--border-strong);
+        border-radius: 16px;
+        padding: 18px;
+      }
+
+      .role-check-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .role-check-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 10px;
+        border-radius: 9px;
+        border: 1px solid var(--border);
+        background: var(--bg-input);
+        font-size: 0.77rem;
+        font-weight: 800;
+        cursor: pointer;
+      }
+
+      @media (max-width: 820px) {
+        .hover-sidebar {
+          width: var(--sidebar-expanded);
+          transform: translateX(100%);
+        }
+        .hover-sidebar.mobile-open {
+          transform: translateX(0);
+        }
+        .mobile-menu-btn {
+          display: inline-flex;
+        }
+        .grid-3,
+        .grid-4 {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 540px) {
+        .grid-2,
+        .grid-3,
+        .grid-4 {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="bg-watermark" aria-hidden="true">
+      <img src="Logo_White.png" alt="" onerror="this.style.display='none'" />
+    </div>
+
+    <!-- Mobile Backdrop -->
+    <div id="sidebarBackdrop" class="sidebar-backdrop" onclick="toggleMobileSidebar(false)"></div>
+
+    <!-- Collapsible Hover Sidebar (RTL Right Side) -->
+    <aside id="prepSidebar" class="hover-sidebar" style="display: none">
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">⚙️</div>
+        <div class="sidebar-brand-text">
+          <strong>تحضير المعرض</strong>
+          <span id="sidebarRoleLabel">الإدارة العامة</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNavList">
+        <div class="sidebar-group-title" data-grp="prep">⚡ التحضير والتوزيع</div>
+        <button type="button" class="side-item active" data-sec="secSalesPower" onclick="switchPrepSection('secSalesPower', this)">
+          <span class="s-ic">⚡</span><span class="s-lbl">ترتيب قوة السيلز</span>
+        </button>
+        <button type="button" class="side-item" data-sec="secStaffRoster" onclick="switchPrepSection('secStaffRoster', this)">
+          <span class="s-ic">🧭</span><span class="s-lbl">توزيع طاقم المعرض</span>
+        </button>
+        <button type="button" class="side-item" data-sec="secTeamDist" onclick="switchPrepSection('secTeamDist', this)">
+          <span class="s-ic">⚖️</span><span class="s-lbl">نسب التوزيع وQR الأوفلاين</span>
+        </button>
+        <button type="button" class="side-item" data-sec="secBalmetrOffers" onclick="switchPrepSection('secBalmetrOffers', this)">
+          <span class="s-ic">🏢</span><span class="s-lbl">عروض بالمتر</span>
+        </button>
+
+        <div class="sidebar-group-title" data-grp="org">👥 الحسابات والمعارض</div>
+        <button type="button" class="side-item" data-sec="secAccounts" onclick="switchPrepSection('secAccounts', this)">
+          <span class="s-ic">👥</span><span class="s-lbl">الحسابات والتيمات</span>
+        </button>
+        <button type="button" class="side-item" data-sec="secExhibitions" onclick="switchPrepSection('secExhibitions', this)">
+          <span class="s-ic">📍</span><span class="s-lbl">المعارض (إخفاء / إظهار)</span>
+        </button>
+        <button type="button" class="side-item" data-sec="secReportSettings" onclick="switchPrepSection('secReportSettings', this)">
+          <span class="s-ic">📄</span><span class="s-lbl">إعدادات تقرير الرحلة</span>
+        </button>
+
+        <div class="sidebar-group-title" data-grp="admin">🔒 صلاحيات المدير العام</div>
+        <button type="button" class="side-item" data-sec="secAccessControl" data-mgr-only="true" onclick="switchPrepSection('secAccessControl', this)">
+          <span class="s-ic">🔑</span><span class="s-lbl">الصلاحيات والأكسس</span>
+        </button>
+        <button type="button" class="side-item" data-sec="secDevOnly" data-mgr-only="true" onclick="switchPrepSection('secDevOnly', this)">
+          <span class="s-ic">🔒</span><span class="s-lbl">Devolepor_only</span>
+        </button>
+      </nav>
+    </aside>
+
+    <div class="main-shell">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="brand-row">
+          <button type="button" id="mobileMenuBtn" class="mobile-menu-btn" style="display: none" onclick="toggleMobileSidebar()">
+            ☰ الأقسام
+          </button>
+          <img src="Logo_White.png" alt="B.almetr" class="brand-logo-img" onerror="this.style.display='none'" />
+          <div>
+            <div style="font-size: 0.95rem; font-weight: 900; color: var(--primary-bright)">
+              ⚙️ سيستم التحضير والإدارة العامة
+            </div>
+            <div id="loggedUserSubtitle" style="font-size: 0.72rem; color: var(--text-muted)">
+              تحضير التيمات والطاقم والعروض قبل المعرض
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+          <span id="syncStatusBadge" class="sync-badge">جاهز</span>
+          <button type="button" id="refreshBtn" class="btn btn-outline btn-sm" style="display: none" onclick="loadAllPrepData(true)">
+            🔄 تحديث
+          </button>
+          <button type="button" id="logoutBtn" class="btn btn-danger btn-sm" style="display: none" onclick="logoutPrep()">
+            🚪 خروج
+          </button>
+        </div>
+      </header>
+
+      <!-- Exhibition Switcher Bar -->
+      <section id="exhBarSection" class="exh-bar">
+        <span style="font-size: 0.8rem; font-weight: 900; color: var(--primary-bright)">📍 المعرض النشط للتحضير:</span>
+        <div id="exhPillsContainer" class="exh-pills"></div>
+      </section>
+
+      <!-- LOGIN VIEW -->
+      <section id="loginView" class="login-wrap">
+        <div class="card" style="text-align: center; padding: 26px 20px">
+          <img
+            src="Logo_White.png"
+            alt="B.almetr"
+            style="height: 50px; margin: 0 auto 12px; display: block"
+            onerror="this.style.display='none'"
+          />
+          <h2 style="color: var(--primary-bright); font-size: 1.15rem; margin-bottom: 6px">
+            🔐 دخول سيستم التحضير والإدارة
+          </h2>
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px">
+            مخصص للإدارة العامة (وأصحاب الصلاحيات المفتوحة من بانل الأكسس) لتجهيز المعرض بالكامل قبل البدء.
+          </p>
+          <input
+            type="password"
+            id="loginPassInput"
+            class="form-control"
+            dir="ltr"
+            style="text-align: center; font-size: 1rem; margin-bottom: 12px"
+            placeholder="أدخل كلمة المرور..."
+            onkeydown="if (event.key === 'Enter') executePrepLogin();"
+          />
+          <button type="button" id="loginBtn" class="btn btn-primary btn-block" onclick="executePrepLogin()">
+            🚀 دخول لغرفة التحضير
+          </button>
+        </div>
+      </section>
+
+      <!-- MAIN PREP WORKSPACE -->
+      <main id="prepWorkspace" style="display: none">
+        <!-- Missing Offers Global Alert -->
+        <div id="globalMissingOffersAlert" class="alert-banner-red" style="display: none"></div>
+
+        <!-- SECTION 1: SALES POWER ORDERING -->
+        <section id="secSalesPower" class="prep-section active">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">⚡ ترتيب قوة السيلز (من الأقوى للأضعف)</div>
+              <span id="powerSaveStatus" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-bright)"></span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px">
+              اختر التيم ورتّب السيلز من الأقوى (#1) للأضعف — الترتيب بيتحفظ تلقائياً وبيشتغل فوراً في التوزيع التلقائي يوم المعرض.
+            </p>
+            <div id="powerTeamPills" class="chips-grid" style="margin-bottom: 14px"></div>
+            <div class="table-responsive">
+              <table style="min-width: 520px">
+                <thead>
+                  <tr>
+                    <th>الترتيب</th>
+                    <th>الكود</th>
+                    <th>اسم السيلز</th>
+                    <th>الدور</th>
+                    <th>حالة الترابيزة (المعرض النشط)</th>
+                    <th>تحكم بالترتيب</th>
+                  </tr>
+                </thead>
+                <tbody id="powerSalesTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2: STAFF ROSTER FOR ACTIVE EXHIBITION -->
+        <section id="secStaffRoster" class="prep-section">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🧭 توزيع طاقم المعرض لـ (<span class="active-exh-lbl">-</span>)</div>
+              <span id="rosterSaveStatus" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-bright)"></span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px">
+              فعّل الموظفين والشركات المطورة النازلين المعرض ده — أي شخص مش متفعل هنا مش هيستلم عملاء تلقائياً وشاشته بتتقفل على معارضه فقط.
+            </p>
+            <div class="grid-2" style="margin-bottom: 12px">
+              <input type="text" id="rosterSearchInput" class="form-control" placeholder="🔍 ابحث بالاسم أو الكود أو التيم..." oninput="renderStaffRosterSection()" />
+              <select id="rosterRoleFilter" class="form-control" onchange="renderStaffRosterSection()">
+                <option value="ALL">👥 كل الأدوار</option>
+                <option value="sales">💼 سيلز بالمتر</option>
+                <option value="usher">🚶 أشرز</option>
+                <option value="reception">🛎️ ريسبشن</option>
+                <option value="broker">🏢 بروكر</option>
+                <option value="team_leader">🎖️ تيم ليدر</option>
+                <option value="exh_manager">🎯 مدير معرض</option>
+                <option value="developer">🏗️ مطورين</option>
+                <option value="dev_sales">🧑‍💼 سيلز المطورين</option>
+              </select>
+            </div>
+            <div id="staffRosterContainer"></div>
+          </div>
+        </section>
+
+        <!-- SECTION 3: TEAM DISTRIBUTION WEIGHTS + OFFLINE FLYER QR -->
+        <section id="secTeamDist" class="prep-section">
+          <div class="grid-2">
+            <div class="card" style="margin-bottom: 0">
+              <div class="card-header">
+                <div class="card-title">⚖️ نسب وتوزيع التيمات في (<span class="active-exh-lbl">-</span>)</div>
+                <button type="button" class="btn btn-gold btn-sm" onclick="saveTeamDistributionSettings()">💾 حفظ النسب</button>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px">
+                حدّد التيمات النشطة في هذا المعرض ووزن التوزيع (مثلاً: 1 للجمعية، 0 للوديعة، 1 للبروكر) ليستخدمه السيستم اللايف تلقائياً:
+              </p>
+              <div id="teamDistList"></div>
+            </div>
+
+            <div class="card" style="margin-bottom: 0">
+              <div class="card-header">
+                <div class="card-title">📄 QR ورق الشارع («أوفلاين») لـ (<span class="active-exh-lbl">-</span>)</div>
+              </div>
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px">
+                اطبع الـ QR ده على ورق الشارع؛ لما عميل ييجي بالورقة للريسبشن ويعمل Scan يتسجل تلقائياً في خانة <strong>«أوفلاين»</strong> وتتحسب نسبته لوحدها (0.5%).
+              </p>
+              <div style="display: flex; flex-direction: column; align-items: center; gap: 10px; background: var(--bg-input); border: 1px dashed var(--border-strong); border-radius: 12px; padding: 14px">
+                <canvas id="offlineQrCanvas" width="420" height="500" style="max-width: 220px; height: auto; border-radius: 10px"></canvas>
+                <button type="button" class="btn btn-gold btn-block" onclick="downloadOfflineFlyerQR()">
+                  ⬇️ تنزيل صورة QR أوفلاين للطباعة (PNG)
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4: BALMETR OFFERS BANK -->
+        <section id="secBalmetrOffers" class="prep-section">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🏢 بنك عروض تيمات بالمتر</div>
+              <span id="offersCountBadge" class="badge badge-gold">0 / 20</span>
+            </div>
+
+            <div style="margin-bottom: 12px">
+              <label class="form-label">اختر التيم:</label>
+              <select id="teamOffersSelect" class="form-control" onchange="renderBalmetrOffersSection()"></select>
+            </div>
+
+            <div id="teamMissingOffersBanner" class="alert-banner-red" style="display: none">
+              🚨 <strong>تنبيه:</strong> التيم ده لسة ما تحطش ليه أي عروض حتى الآن — أضف العروض عشان تظهر للسيلز وقت القعدة!
+            </div>
+
+            <div class="grid-4" style="margin-bottom: 10px">
+              <input type="text" id="offerProject" class="form-control" maxlength="50" placeholder="اسم المشروع *" />
+              <select id="offerUnitType" class="form-control">
+                <option value="تجاري">🛍️ تجاري</option>
+                <option value="إداري">💼 إداري</option>
+                <option value="طبي">🏥 طبي</option>
+                <option value="فندقي">🏨 فندقي</option>
+                <option value="سكني">🏠 سكني</option>
+              </select>
+              <input type="text" id="offerArea" class="form-control" maxlength="25" placeholder="المساحة (مثال: 1 متر)" />
+              <input type="text" id="offerTotal" class="form-control" maxlength="30" placeholder="الإجمالي (مثال: 250K)" />
+              <input type="text" id="offerDown" class="form-control" maxlength="30" placeholder="المقدم" />
+              <input type="text" id="offerInstallment" class="form-control" maxlength="30" placeholder="القسط" />
+              <input type="text" id="offerYears" class="form-control" maxlength="20" placeholder="عدد السنوات" />
+              <input type="text" id="offerRoi" class="form-control" maxlength="30" placeholder="العائد المتوقع" />
+            </div>
+            <input
+              type="text"
+              id="offerDetails"
+              class="form-control"
+              style="margin-bottom: 10px"
+              maxlength="220"
+              placeholder="📝 تفاصيل إضافية عن العرض (اختياري)..."
+            />
+            <button type="button" id="addOfferBtn" class="btn btn-primary btn-block" style="margin-bottom: 14px" onclick="addTeamOffer()">
+              ➕ إضافة العرض للتيم المحدد
+            </button>
+
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>المشروع</th>
+                    <th>المساحة / الإجمالي</th>
+                    <th>السداد</th>
+                    <th>العائد</th>
+                    <th>تفاصيل</th>
+                    <th>حذف</th>
+                  </tr>
+                </thead>
+                <tbody id="teamOffersTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 5: ACCOUNTS & TEAMS MANAGEMENT -->
+        <section id="secAccounts" class="prep-section">
+          <!-- Teams Management -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🏷️ إدارة التيمات (قوائم التوزيع)</div>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px">
+              <input type="text" id="newTeamNameInput" class="form-control" style="flex: 1; min-width: 180px" placeholder="اسم تيم جديد (مثال: الاستلام الفوري)..." />
+              <button type="button" class="btn btn-primary" onclick="addNewTeam()">➕ إضافة تيم</button>
+            </div>
+            <div id="teamsChipsWrap" class="chips-grid"></div>
+          </div>
+
+          <!-- Add New Account -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">➕ إضافة حساب جديد (سيلز / أشر / ريسبشن / مطور / بروكر / تيم ليدر)</div>
+            </div>
+            <div class="grid-3" style="margin-bottom: 10px">
+              <div>
+                <label class="form-label">الدور الأساسي:</label>
+                <select id="addAccRole" class="form-control" onchange="syncAddRoleVisibility()">
+                  <option value="sales">💼 سيلز بالمتر</option>
+                  <option value="usher">🚶 أشرز</option>
+                  <option value="reception">🛎️ ريسبشن</option>
+                  <option value="broker">🏢 بروكر</option>
+                  <option value="team_leader">🎖️ تيم ليدر</option>
+                  <option value="exh_manager">🎯 مدير معرض</option>
+                  <option value="developer">🏗️ شركة مطورة</option>
+                  <option value="dev_sales">🧑‍💼 سيلز مطور</option>
+                  <option value="admin_broker">🤝 أدمن بروكر</option>
+                  <option value="influencer">🌟 إنفلونسر</option>
+                </select>
+              </div>
+              <div id="addAccTeamWrap">
+                <label class="form-label">التيم:</label>
+                <select id="addAccTeam" class="form-control"></select>
+              </div>
+              <div id="addAccParentDevWrap" style="display: none">
+                <label class="form-label">تابع للشركة المطورة:</label>
+                <select id="addAccParentDev" class="form-control"></select>
+              </div>
+              <div>
+                <label class="form-label">الاسم *:</label>
+                <input type="text" id="addAccName" class="form-control" placeholder="الاسم الكامل..." />
+              </div>
+              <div>
+                <label class="form-label">الكود (تلقائي لو فاضي):</label>
+                <input type="text" id="addAccCode" class="form-control" dir="ltr" placeholder="مثال: S45" />
+              </div>
+              <div>
+                <label class="form-label">الباسورد (تلقائي لو فاضي):</label>
+                <input type="text" id="addAccPass" class="form-control" dir="ltr" placeholder="اختياري..." />
+              </div>
+              <div>
+                <label class="form-label">رقم التليفون:</label>
+                <input type="tel" id="addAccPhone" class="form-control" dir="ltr" placeholder="010..." />
+              </div>
+              <div>
+                <label class="form-label">نسبة الدعوة (%):</label>
+                <input type="number" step="0.1" id="addAccFirstPct" class="form-control" dir="ltr" value="0.5" />
+              </div>
+              <div>
+                <label class="form-label">نسبة الترابيزة (%):</label>
+                <input type="number" step="0.1" id="addAccTablePct" class="form-control" dir="ltr" value="1.0" />
+              </div>
+            </div>
+
+            <div style="background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 10px">
+              <div style="font-size: 0.78rem; font-weight: 900; color: var(--gold); margin-bottom: 6px">🎛️ أدوار إضافية بنفس الباسورد (اختياري):</div>
+              <div id="addAccExpoRoles" class="role-check-grid" style="margin-bottom: 8px">
+                <label class="role-check-item"><input type="checkbox" value="usher" /> 🚶 أشرز</label>
+                <label class="role-check-item"><input type="checkbox" value="reception" /> 🛎️ ريسبشن</label>
+                <label class="role-check-item"><input type="checkbox" value="sales" /> 💼 سيلز قعدة</label>
+                <label class="role-check-item"><input type="checkbox" value="broker" /> 🏢 بروكر</label>
+                <label class="role-check-item"><input type="checkbox" value="team_leader" /> 🎖️ تيم ليدر</label>
+                <label class="role-check-item"><input type="checkbox" value="exh_manager" /> 🎯 مدير معرض</label>
+                <label class="role-check-item"><input type="checkbox" value="dev_manager" /> 👑 مدير مطور</label>
+              </div>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap">
+                <label class="role-check-item"><input type="checkbox" id="addAccCanEditReq" /> ✏️ تعديل ريكويست العميل</label>
+                <label class="role-check-item"><input type="checkbox" id="addAccShowPhone" checked /> 📱 إظهار التليفون في التقرير</label>
+              </div>
+            </div>
+
+            <button type="button" id="addAccBtn" class="btn btn-primary btn-block" onclick="createNewAccount()">
+              ➕ إنشاء الحساب الآن
+            </button>
+          </div>
+
+          <!-- Accounts Table -->
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📋 جميع الحسابات (<span id="accountsCountBadge">0</span>)</div>
+            </div>
+            <div class="grid-2" style="margin-bottom: 12px">
+              <input type="text" id="accSearchInput" class="form-control" placeholder="🔍 ابحث بالاسم أو الكود أو التيم..." oninput="renderAccountsTable()" />
+              <select id="accRoleFilter" class="form-control" onchange="renderAccountsTable()">
+                <option value="ALL">👥 كل الأدوار</option>
+                <option value="sales">💼 سيلز بالمتر</option>
+                <option value="usher">🚶 أشرز</option>
+                <option value="reception">🛎️ ريسبشن</option>
+                <option value="broker">🏢 بروكر</option>
+                <option value="team_leader">🎖️ تيم ليدر</option>
+                <option value="exh_manager">🎯 مدير معرض</option>
+                <option value="developer">🏗️ مطورين</option>
+                <option value="dev_sales">🧑‍💼 سيلز مطورين</option>
+                <option value="admin_broker">🤝 أدمن بروكر</option>
+                <option value="influencer">🌟 إنفلونسر</option>
+              </select>
+            </div>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>الكود</th>
+                    <th>الاسم</th>
+                    <th>الدور / التيم</th>
+                    <th>الباسورد</th>
+                    <th>النسب</th>
+                    <th>إجراءات</th>
+                  </tr>
+                </thead>
+                <tbody id="accountsTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 6: EXHIBITIONS VISIBILITY -->
+        <section id="secExhibitions" class="prep-section">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📍 إدارة ظهور وإخفاء المعارض</div>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px">
+              تحكم في إخفاء أو إظهار أي معرض فوراً (يسمّع في سيستم الدعوات والسيستم اللايف معاً). لإضافة معرض جديد أو تعديل تصميم القالب استخدم سيستم الدعوات.
+            </p>
+            <div class="table-responsive">
+              <table>
+                <thead>
+                  <tr>
+                    <th>اسم المعرض</th>
+                    <th>الحالة للسيلز</th>
+                    <th>رقم التسلسل القادم</th>
+                    <th>إجراءات سريعة</th>
+                  </tr>
+                </thead>
+                <tbody id="exhibitionsTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 7: JOURNEY REPORT SETTINGS -->
+        <section id="secReportSettings" class="prep-section">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">📄 إعدادات تقرير رحلة العميل المطبوع</div>
+            </div>
+            <div class="grid-2" style="margin-bottom: 12px">
+              <div>
+                <label class="form-label">الخط الساخن / رقم التواصل:</label>
+                <input type="text" id="repHotlineInput" class="form-control" dir="ltr" placeholder="19XXX" />
+              </div>
+              <div>
+                <label class="form-label">العنوان الفرعي / الشعار:</label>
+                <input type="text" id="repSubtitleInput" class="form-control" placeholder="تقرير رحلتك الاستثمارية مع B.almetr" />
+              </div>
+            </div>
+            <div class="chips-grid" style="margin-bottom: 14px">
+              <label class="role-check-item"><input type="checkbox" id="repShowOfferChk" checked /> 🎁 إظهار تفاصيل العرض المرشح</label>
+              <label class="role-check-item"><input type="checkbox" id="repShowNotesChk" checked /> 📝 إظهار ملاحظات الجلسة</label>
+              <label class="role-check-item"><input type="checkbox" id="repShowPhoneChk" checked /> 📱 إظهار رقم السيلز</label>
+            </div>
+            <button type="button" class="btn btn-gold" onclick="saveReportSettings()">💾 حفظ إعدادات التقرير</button>
+            <span id="repSaveStatus" style="margin-right: 10px; font-size: 0.8rem; font-weight: 800; color: var(--primary-bright)"></span>
+          </div>
+        </section>
+
+        <!-- SECTION 8: ACCESS CONTROL (MANAGER ONLY) -->
+        <section id="secAccessControl" class="prep-section">
+          <div class="card">
+            <div class="card-header">
+              <div class="card-title">🔑 إدارة الصلاحيات والأكسس (حصري للمدير العام)</div>
+              <span id="accessSaveStatus" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-bright)"></span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px">
+              افتراضياً كل الصلاحيات في إيد المدير العام بس. افتح أي قسم لشخص معين بضغطة واحدة فيقدر يدخل سيستم التحضير بباسورده ويعدل القسم المسموح له فقط.
+            </p>
+            <div class="kpi-grid" id="accessKpiGrid"></div>
+            <div class="grid-2" style="margin-bottom: 12px">
+              <input type="text" id="accessSearchInput" class="form-control" placeholder="🔍 ابحث بالاسم أو الكود..." oninput="renderAccessControlSection()" />
+              <select id="accessRoleFilter" class="form-control" onchange="renderAccessControlSection()">
+                <option value="ALL">👥 كل الحسابات</option>
+                <option value="HAS_ACCESS">🔑 أصحاب الصلاحيات المفتوحة فقط</option>
+                <option value="team_leader">🎖️ تيم ليدر</option>
+                <option value="exh_manager">🎯 مدير معرض</option>
+                <option value="sales">💼 سيلز</option>
+                <option value="broker">🏢 بروكر</option>
+              </select>
+            </div>
+            <div id="accessUsersContainer"></div>
+          </div>
+        </section>
+
+        <!-- SECTION 9: DEVOLEPOR_ONLY (LOCKED WITH M-A-L-L-A-M) -->
+        <section id="secDevOnly" class="prep-section">
+          <div id="devLockCard" class="card" style="max-width: 440px; margin: 20px auto; text-align: center">
+            <div style="font-size: 2rem; margin-bottom: 8px">🔒</div>
+            <h3 style="color: var(--gold); margin-bottom: 8px">لوحة Devolepor_only</h3>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 12px">أدخل كلمة مرور المطور لفتح النسخ الاحتياطي والاستعادة:</p>
+            <input type="password" id="devPassInput" class="form-control" dir="ltr" style="text-align: center; margin-bottom: 10px" placeholder="Password..." onkeydown="if (event.key === 'Enter') unlockDevPanel();" />
+            <button type="button" class="btn btn-gold btn-block" onclick="unlockDevPanel()">🔓 فتح اللوحة</button>
+          </div>
+
+          <div id="devUnlockedContent" style="display: none">
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">🔐 إعدادات المطورين والنسخ الاحتياطي (JSON)</div>
+                <button type="button" class="btn btn-danger btn-sm" onclick="lockDevPanel()">🔒 قفل</button>
+              </div>
+              <div class="grid-2" style="margin-bottom: 14px">
+                <div>
+                  <label class="form-label">كلمة سر تسجيل شركة مطورة جديدة:</label>
+                  <div style="display: flex; gap: 6px">
+                    <input type="text" id="devSignupPassInput" class="form-control" dir="ltr" />
+                    <button type="button" class="btn btn-primary btn-sm" onclick="saveDevSignupPass()">💾 حفظ</button>
+                  </div>
+                </div>
+                <div>
+                  <label class="form-label">تحميل نسخة احتياطية كاملة (إعدادات + حسابات + معارض):</label>
+                  <button type="button" class="btn btn-success btn-block" onclick="downloadPrepBackupJSON()">📥 تحميل Backup JSON الآن</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- EDIT ACCOUNT MODAL -->
+    <div id="editAccModal" class="modal-overlay">
+      <div class="modal-box">
+        <h3 style="color: var(--primary-bright); margin-bottom: 12px">✏️ تعديل بيانات الحساب</h3>
+        <input type="hidden" id="editAccId" />
+        <div class="grid-2" style="margin-bottom: 10px">
+          <div>
+            <label class="form-label">الاسم:</label>
+            <input type="text" id="editAccName" class="form-control" />
+          </div>
+          <div>
+            <label class="form-label">الكود:</label>
+            <input type="text" id="editAccCode" class="form-control" dir="ltr" />
+          </div>
+          <div>
+            <label class="form-label">الباسورد:</label>
+            <input type="text" id="editAccPass" class="form-control" dir="ltr" />
+          </div>
+          <div>
+            <label class="form-label">التليفون:</label>
+            <input type="tel" id="editAccPhone" class="form-control" dir="ltr" />
+          </div>
+          <div>
+            <label class="form-label">الدور الأساسي:</label>
+            <select id="editAccRole" class="form-control">
+              <option value="sales">💼 سيلز بالمتر</option>
+              <option value="usher">🚶 أشرز</option>
+              <option value="reception">🛎️ ريسبشن</option>
+              <option value="broker">🏢 بروكر</option>
+              <option value="team_leader">🎖️ تيم ليدر</option>
+              <option value="exh_manager">🎯 مدير معرض</option>
+              <option value="developer">🏗️ شركة مطورة</option>
+              <option value="dev_sales">🧑‍💼 سيلز مطور</option>
+              <option value="admin_broker">🤝 أدمن بروكر</option>
+              <option value="influencer">🌟 إنفلونسر</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">التيم:</label>
+            <select id="editAccTeam" class="form-control"></select>
+          </div>
+          <div>
+            <label class="form-label">نسبة الدعوة (%):</label>
+            <input type="number" step="0.1" id="editAccFirstPct" class="form-control" dir="ltr" />
+          </div>
+          <div>
+            <label class="form-label">نسبة الترابيزة (%):</label>
+            <input type="number" step="0.1" id="editAccTablePct" class="form-control" dir="ltr" />
+          </div>
+        </div>
+
+        <div style="background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 10px; margin-bottom: 12px">
+          <div style="font-size: 0.78rem; font-weight: 900; color: var(--gold); margin-bottom: 6px">🎛️ أدوار إضافية:</div>
+          <div id="editAccExpoRoles" class="role-check-grid" style="margin-bottom: 8px">
+            <label class="role-check-item"><input type="checkbox" value="usher" /> 🚶 أشرز</label>
+            <label class="role-check-item"><input type="checkbox" value="reception" /> 🛎️ ريسبشن</label>
+            <label class="role-check-item"><input type="checkbox" value="sales" /> 💼 سيلز قعدة</label>
+            <label class="role-check-item"><input type="checkbox" value="broker" /> 🏢 بروكر</label>
+            <label class="role-check-item"><input type="checkbox" value="team_leader" /> 🎖️ تيم ليدر</label>
+            <label class="role-check-item"><input type="checkbox" value="exh_manager" /> 🎯 مدير معرض</label>
+            <label class="role-check-item"><input type="checkbox" value="dev_manager" /> 👑 مدير مطور</label>
+          </div>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap">
+            <label class="role-check-item"><input type="checkbox" id="editAccCanEditReq" /> ✏️ تعديل ريكويست العميل</label>
+            <label class="role-check-item"><input type="checkbox" id="editAccShowPhone" /> 📱 إظهار التليفون في التقرير</label>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 8px">
+          <button type="button" class="btn btn-success" style="flex: 1" onclick="saveEditedAccount()">💾 حفظ التعديل</button>
+          <button type="button" class="btn btn-outline" style="flex: 1" onclick="closeEditAccModal()">إلغاء</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const SUPABASE_URL = "https://xdvmfjpccmzrwynpentr.supabase.co";
+      const SUPABASE_KEY = "sb_publishable_1zDPrrzj5QdaILjGuXZujQ_nNpz3Se_";
+      const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      const DEV_PANEL_PASS = "M-A-L-L-A-M";
+
+      const DELEGATABLE_SECTIONS = [
+        { id: "secSalesPower", label: "⚡ ترتيب قوة السيلز" },
+        { id: "secStaffRoster", label: "🧭 توزيع طاقم المعرض" },
+        { id: "secTeamDist", label: "⚖️ نسب التوزيع وQR الأوفلاين" },
+        { id: "secBalmetrOffers", label: "🏢 عروض بالمتر" },
+        { id: "secAccounts", label: "👥 الحسابات والتيمات" },
+        { id: "secExhibitions", label: "📍 المعارض (إخفاء/إظهار)" },
+        { id: "secReportSettings", label: "📄 إعدادات تقرير الرحلة" },
+      ];
+
+      const DEFAULT_REPORT_CONFIG = {
+        hotline: "19000",
+        subtitle: "تقرير رحلتك الاستثمارية مع B.almetr",
+        showOfferDetails: true,
+        showNotes: true,
+        showRepPhone: true,
+      };
+
+      const state = {
+        currentUser: null,
+        activeSection: "secSalesPower",
+        activeExhibitionId: null,
+        exhibitions: [],
+        accounts: [],
+        offers: [],
+        teamsList: ["المعرض", "الجمعية", "الوديعة", "الاستلام الفوري", "بروكر"],
+        teamSalesOrder: {},
+        userPermissions: {},
+        journeyReportConfig: { ...DEFAULT_REPORT_CONFIG },
+        developerSignupPass: "",
+        activePowerTeamIdx: 0,
+        devUnlocked: false,
+      };
+
+      function escapeHtml(str) {
+        return String(str ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function setSyncBadge(mode) {
+        const el = document.getElementById("syncStatusBadge");
+        if (!el) return;
+        if (mode === "syncing") {
+          el.className = "sync-badge syncing";
+          el.textContent = "⏳ جاري التحديث...";
+        } else if (mode === false) {
+          el.className = "sync-badge syncing";
+          el.textContent = "⚠️ تحقق من الاتصال";
+        } else {
+          el.className = "sync-badge";
+          el.textContent = "✅ متصل لايف";
+        }
+      }
+
+      function accountHasRole(acc, role) {
+        if (!acc) return false;
+        if (acc.role === role) return true;
+        return Array.isArray(acc.expo_roles) && acc.expo_roles.includes(role);
+      }
+
+      function getRoleLabel(r) {
+        const m = {
+          manager: "👑 مدير عام",
+          exh_manager: "🎯 مدير معرض",
+          sales: "💼 سيلز",
+          usher: "🚶 أشر",
+          reception: "🛎️ ريسبشن",
+          broker: "🏢 بروكر",
+          team_leader: "🎖️ تيم ليدر",
+          developer: "🏗️ مطور",
+          dev_sales: "🧑‍💼 سيلز مطور",
+          dev_manager: "👑 مدير مطور",
+          admin_broker: "🤝 أدمن بروكر",
+          influencer: "🌟 إنفلونسر",
+        };
+        return m[r] || r;
+      }
+
+      function toggleMobileSidebar(forceState) {
+        const sbEl = document.getElementById("prepSidebar");
+        const bdEl = document.getElementById("sidebarBackdrop");
+        const next = typeof forceState === "boolean" ? forceState : !sbEl.classList.contains("mobile-open");
+        sbEl.classList.toggle("mobile-open", next);
+        bdEl.classList.toggle("show", next);
+      }
+
+      function getAllowedSections() {
+        const u = state.currentUser;
+        if (!u) return [];
+        if (u.role === "manager") {
+          return [...DELEGATABLE_SECTIONS.map((s) => s.id), "secAccessControl", "secDevOnly"];
+        }
+        const perms = state.userPermissions?.[u.id];
+        if (!Array.isArray(perms)) return [];
+        // Map legacy index.html perm IDs cleanly as well
+        const map = {
+          mgrTabSalesPower: "secSalesPower",
+          mgrTabStaffDist: "secStaffRoster",
+          mgrTabBalmetrOffers: "secBalmetrOffers",
+          mgrTabAccounts: "secAccounts",
+          mgrTabStudio: "secExhibitions",
+          mgrTabReportSettings: "secReportSettings",
+        };
+        const out = new Set();
+        perms.forEach((p) => {
+          if (DELEGATABLE_SECTIONS.some((s) => s.id === p)) out.add(p);
+          if (map[p]) out.add(map[p]);
+          if (p === "mgrTabStaffDist") out.add("secTeamDist");
+        });
+        return Array.from(out);
+      }
+
+      async function executePrepLogin() {
+        const pass = (document.getElementById("loginPassInput").value || "").trim();
+        if (!pass) return;
+        const btn = document.getElementById("loginBtn");
+        btn.disabled = true;
+        btn.textContent = "⏳ جاري التحقق...";
+        try {
+          const { data, error } = await sb.rpc("smart_login", { p_password: pass });
+          if (error) throw error;
+          if (data?.status !== "ACCOUNT" || !data.account) {
+            alert("❌ كلمة المرور غير صحيحة!");
+            return;
+          }
+          state.currentUser = data.account;
+          await loadAllPrepData(false);
+          const allowed = getAllowedSections();
+          if (allowed.length === 0) {
+            state.currentUser = null;
+            alert("🔒 هذا الحساب لا يملك صلاحية دخول سيستم التحضير — تواصل مع الإدارة العامة لفتح الصلاحيات.");
+            return;
+          }
+          document.getElementById("loginPassInput").value = "";
+          enterPrepWorkspace();
+        } catch (err) {
+          console.error(err);
+          alert("❌ تعذر الدخول: " + (err.message || ""));
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "🚀 دخول لغرفة التحضير";
+        }
+      }
+
+      function logoutPrep() {
+        if (!confirm("هل تريد تسجيل الخروج؟")) return;
+        state.currentUser = null;
+        state.devUnlocked = false;
+        document.body.classList.remove("sidebar-active");
+        document.getElementById("prepSidebar").style.display = "none";
+        document.getElementById("prepWorkspace").style.display = "none";
+        document.getElementById("exhBarSection").style.display = "none";
+        document.getElementById("mobileMenuBtn").style.display = "none";
+        document.getElementById("refreshBtn").style.display = "none";
+        document.getElementById("logoutBtn").style.display = "none";
+        document.getElementById("loginView").style.display = "block";
+        document.getElementById("loggedUserSubtitle").textContent = "تحضير التيمات والطاقم والعروض قبل المعرض";
+      }
+
+      async function loadAllPrepData(showToast = false) {
+        setSyncBadge("syncing");
+        try {
+          const [exhRes, accRes, setRes, offRes] = await Promise.all([
+            sb.from("exhibitions").select("*").order("created_at", { ascending: true }),
+            sb.from("accounts").select("*").order("created_at", { ascending: true }),
+            sb.from("system_settings").select("*"),
+            sb.from("offers").select("*").order("created_at", { ascending: true }),
+          ]);
+          if (exhRes.error) throw exhRes.error;
+          if (accRes.error) throw accRes.error;
+
+          state.exhibitions = exhRes.data || [];
+          state.accounts = accRes.data || [];
+          state.offers = offRes.data || [];
+
+          (setRes.data || []).forEach((row) => {
+            if (!row || !row.key) return;
+            if (row.key === "teams_list") {
+              try {
+                const p = JSON.parse(row.value);
+                if (Array.isArray(p) && p.length > 0) state.teamsList = p;
+              } catch (e) {}
+            } else if (row.key === "team_sales_order") {
+              try {
+                const p = JSON.parse(row.value);
+                if (p && typeof p === "object") state.teamSalesOrder = p;
+              } catch (e) {}
+            } else if (row.key === "user_permissions") {
+              try {
+                const p = JSON.parse(row.value);
+                if (p && typeof p === "object") state.userPermissions = p;
+              } catch (e) {}
+            } else if (row.key === "journey_report_config") {
+              try {
+                const p = JSON.parse(row.value);
+                if (p && typeof p === "object") state.journeyReportConfig = { ...DEFAULT_REPORT_CONFIG, ...p };
+              } catch (e) {}
+            } else if (row.key === "developer_signup_pass") {
+              state.developerSignupPass = row.value || "";
+            }
+          });
+
+          if (!state.activeExhibitionId || !state.exhibitions.some((e) => e.id === state.activeExhibitionId)) {
+            const vis = state.exhibitions.find((e) => !e.hide_in_sales) || state.exhibitions[0];
+            state.activeExhibitionId = vis ? vis.id : null;
+          }
+
+          setSyncBadge(true);
+          if (state.currentUser) {
+            renderExhibitionBar();
+            renderMissingOffersGlobalAlert();
+            renderActiveSection();
+          }
+          if (showToast) alert("✅ تم تحديث جميع البيانات!");
+        } catch (err) {
+          console.error(err);
+          setSyncBadge(false);
+        }
+      }
+
+      function enterPrepWorkspace() {
+        const u = state.currentUser;
+        document.body.classList.add("sidebar-active");
+        document.getElementById("loginView").style.display = "none";
+        document.getElementById("prepSidebar").style.display = "flex";
+        document.getElementById("prepWorkspace").style.display = "block";
+        document.getElementById("exhBarSection").style.display = "flex";
+        document.getElementById("mobileMenuBtn").style.display = "";
+        document.getElementById("refreshBtn").style.display = "inline-flex";
+        document.getElementById("logoutBtn").style.display = "inline-flex";
+        document.getElementById("loggedUserSubtitle").textContent = `${getRoleLabel(u.role)}: ${u.name} (${u.code})`;
+        document.getElementById("sidebarRoleLabel").textContent = u.role === "manager" ? "الإدارة العامة" : `صلاحيات: ${u.name}`;
+
+        const allowed = new Set(getAllowedSections());
+        let firstSec = null;
+        let firstBtn = null;
+        document.querySelectorAll("#sidebarNavList .side-item").forEach((btn) => {
+          const sec = btn.getAttribute("data-sec");
+          const ok = allowed.has(sec);
+          btn.style.display = ok ? "flex" : "none";
+          if (ok && !firstSec) {
+            firstSec = sec;
+            firstBtn = btn;
+          }
+        });
+        if (!allowed.has(state.activeSection) && firstSec) {
+          switchPrepSection(firstSec, firstBtn);
+        } else {
+          renderExhibitionBar();
+          renderMissingOffersGlobalAlert();
+          renderActiveSection();
+        }
+      }
+
+      function getActiveExh() {
+        return state.exhibitions.find((e) => e.id === state.activeExhibitionId) || null;
+      }
+
+      function renderExhibitionBar() {
+        const wrap = document.getElementById("exhPillsContainer");
+        const active = getActiveExh();
+        wrap.innerHTML = state.exhibitions
+          .map(
+            (e) =>
+              `<button type="button" class="exh-pill ${e.id === active?.id ? "active" : ""}" onclick="selectActiveExh('${e.id}')">${e.hide_in_sales ? "🙈" : "📍"} ${escapeHtml(e.name)}</button>`
+          )
+          .join("");
+        document.querySelectorAll(".active-exh-lbl").forEach((el) => {
+          el.textContent = active ? active.name : "-";
+        });
+      }
+
+      function selectActiveExh(exhId) {
+        state.activeExhibitionId = exhId;
+        renderExhibitionBar();
+        renderActiveSection();
+      }
+
+      function switchPrepSection(secId, btnEl) {
+        state.activeSection = secId;
+        document.querySelectorAll(".prep-section").forEach((s) => s.classList.remove("active"));
+        document.querySelectorAll("#sidebarNavList .side-item").forEach((b) => b.classList.remove("active"));
+        document.getElementById(secId)?.classList.add("active");
+        if (btnEl) btnEl.classList.add("active");
+        toggleMobileSidebar(false);
+        renderActiveSection();
+      }
+
+      function renderMissingOffersGlobalAlert() {
+        const box = document.getElementById("globalMissingOffersAlert");
+        if (!box) return;
+        const missingTeams = state.teamsList.filter(
+          (t) => !state.offers.some((o) => o.owner_key === `team_${t}`)
+        );
+        const activeExh = getActiveExh();
+        const activeDevs = state.accounts.filter(
+          (a) =>
+            a.role === "developer" &&
+            (!activeExh || (Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(activeExh.id)))
+        );
+        const missingDevs = activeDevs.filter((d) => !state.offers.some((o) => o.owner_key === d.id));
+
+        const parts = [];
+        if (missingTeams.length > 0) parts.push(`تيمات بدون عروض: ${missingTeams.join("، ")}`);
+        if (missingDevs.length > 0) parts.push(`مطورين نشطين بدون عروض: ${missingDevs.map((d) => d.name).join("، ")}`);
+
+        if (parts.length > 0) {
+          box.style.display = "block";
+          box.innerHTML = `🚨 <strong>تنبيه العروض الناقصة:</strong> ${escapeHtml(parts.join("  |  "))}`;
+        } else {
+          box.style.display = "none";
+        }
+      }
+
+      function renderActiveSection() {
+        const s = state.activeSection;
+        if (s === "secSalesPower") renderSalesPowerSection();
+        else if (s === "secStaffRoster") renderStaffRosterSection();
+        else if (s === "secTeamDist") {
+          renderTeamDistSection();
+          renderOfflineFlyerQR();
+        } else if (s === "secBalmetrOffers") renderBalmetrOffersSection();
+        else if (s === "secAccounts") renderAccountsSection();
+        else if (s === "secExhibitions") renderExhibitionsSection();
+        else if (s === "secReportSettings") renderReportSettingsSection();
+        else if (s === "secAccessControl") renderAccessControlSection();
+        else if (s === "secDevOnly") renderDevOnlySection();
+      }
+
+      // ==================== 1. SALES POWER ORDERING (SAFE INDEX — FIXES Manege's!) ====================
+      function getTeamMembersForPower(teamName) {
+        const list = state.accounts.filter((a) => {
+          if (a.role === "manager" || a.role === "developer") return false;
+          return (a.team || "المعرض") === teamName;
+        });
+        const savedOrder = Array.isArray(state.teamSalesOrder?.[teamName])
+          ? state.teamSalesOrder[teamName]
+          : [];
+        const idxMap = new Map(savedOrder.map((id, i) => [id, i]));
+        return [...list].sort((a, b) => {
+          const ia = idxMap.has(a.id) ? idxMap.get(a.id) : 9999;
+          const ib = idxMap.has(b.id) ? idxMap.get(b.id) : 9999;
+          if (ia !== ib) return ia - ib;
+          return String(a.code || "").localeCompare(String(b.code || ""));
+        });
+      }
+
+      function renderSalesPowerSection() {
+        const teams = state.teamsList.length > 0 ? state.teamsList : ["المعرض"];
+        if (state.activePowerTeamIdx >= teams.length || state.activePowerTeamIdx < 0) {
+          state.activePowerTeamIdx = 0;
+        }
+        const activeTeam = teams[state.activePowerTeamIdx];
+        const activeExh = getActiveExh();
+
+        const pillsEl = document.getElementById("powerTeamPills");
+        pillsEl.innerHTML = teams
+          .map((t, i) => {
+            const cnt = getTeamMembersForPower(t).length;
+            return `<button type="button" class="btn ${i === state.activePowerTeamIdx ? "btn-primary" : "btn-outline"} btn-sm" onclick="selectPowerTeamIdx(${i})">🏷️ ${escapeHtml(t)} <span class="badge">${cnt}</span></button>`;
+          })
+          .join("");
+
+        const members = getTeamMembersForPower(activeTeam);
+        const tbody = document.getElementById("powerSalesTbody");
+        if (members.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">لا يوجد أعضاء مسجلين في تيم (${escapeHtml(activeTeam)}) بعد.</td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = members
+          .map((s, idx) => {
+            const exhIds = Array.isArray(s.active_exhibition_ids) ? s.active_exhibition_ids : [];
+            const onTable = activeExh && exhIds.includes(activeExh.id);
+            return `
+            <tr>
+              <td>
+                <strong style="color:${idx === 0 ? "#fcd34d" : "#2dd4bf"};">#${idx + 1}</strong>
+                ${idx === 0 ? `<span class="badge badge-gold" style="margin-right:4px;">الأقوى ⭐</span>` : ""}
+              </td>
+              <td><span class="badge badge-mint">${escapeHtml(s.code)}</span></td>
+              <td style="font-weight:800;">${escapeHtml(s.name)}</td>
+              <td><span class="badge">${escapeHtml(getRoleLabel(s.role))}</span></td>
+              <td>${onTable ? `<span class="badge badge-success">✅ على الترابيزة</span>` : `<span style="color:var(--text-muted); font-size:0.76rem;">غير مفعل</span>`}</td>
+              <td style="white-space:nowrap;">
+                <button type="button" class="btn btn-gold btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 'TOP')" title="نقل للأول">⏫</button>
+                <button type="button" class="btn btn-outline btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', -1)" title="رفع">⬆️</button>
+                <button type="button" class="btn btn-outline btn-sm" ${idx === members.length - 1 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 1)" title="إنزال">⬇️</button>
+              </td>
+            </tr>`;
+          })
+          .join("");
+      }
+
+      function selectPowerTeamIdx(idx) {
+        state.activePowerTeamIdx = idx;
+        renderSalesPowerSection();
+      }
+
+      async function movePowerOrder(teamIdx, accId, direction) {
+        const teamName = state.teamsList[teamIdx];
+        if (!teamName) return;
+        const ordered = getTeamMembersForPower(teamName);
+        const ids = ordered.map((a) => a.id);
+        const idx = ids.indexOf(accId);
+        if (idx < 0) return;
+
+        if (direction === "TOP") {
+          if (idx === 0) return;
+          ids.splice(idx, 1);
+          ids.unshift(accId);
+        } else {
+          const tIdx = idx + direction;
+          if (tIdx < 0 || tIdx >= ids.length) return;
+          [ids[idx], ids[tIdx]] = [ids[tIdx], ids[idx]];
+        }
+
+        state.teamSalesOrder = { ...(state.teamSalesOrder || {}), [teamName]: ids };
+        const stEl = document.getElementById("powerSaveStatus");
+        stEl.textContent = "⏳ جاري الحفظ...";
+        renderSalesPowerSection();
+
+        try {
+          const { error } = await sb.from("system_settings").upsert({
+            key: "team_sales_order",
+            value: JSON.stringify(state.teamSalesOrder),
+          });
+          if (error) throw error;
+          stEl.textContent = "✅ تم الحفظ وتحديث التوزيع التلقائي";
+        } catch (err) {
+          console.error(err);
+          stEl.textContent = "❌ تعذر الحفظ";
+        }
+      }
+
+      // ==================== 2. STAFF ROSTER ====================
+      function renderStaffRosterSection() {
+        const exh = getActiveExh();
+        const wrap = document.getElementById("staffRosterContainer");
+        if (!exh) {
+          wrap.innerHTML = `<div style="color:var(--text-muted); padding:14px;">اختر معرضاً أولاً.</div>`;
+          return;
+        }
+        const q = (document.getElementById("rosterSearchInput")?.value || "").trim().toLowerCase();
+        const rFilt = document.getElementById("rosterRoleFilter")?.value || "ALL";
+
+        const filtered = state.accounts.filter((a) => {
+          if (a.role === "manager") return false;
+          if (rFilt !== "ALL" && a.role !== rFilt && !accountHasRole(a, rFilt)) return false;
+          if (q && !`${a.name} ${a.code} ${a.team || ""}`.toLowerCase().includes(q)) return false;
+          return true;
+        });
+
+        const groups = {};
+        filtered.forEach((a) => {
+          const g = a.role === "developer" || a.role === "dev_sales" ? "🏗️ المطورين وسيلز المطورين" : `🏷️ تيم: ${a.team || "عام"}`;
+          if (!groups[g]) groups[g] = [];
+          groups[g].push(a);
+        });
+
+        wrap.innerHTML =
+          Object.entries(groups)
+            .map(([gName, list]) => {
+              const activeCnt = list.filter((a) => Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id)).length;
+              return `
+              <div style="background:var(--bg-input); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                  <strong style="color:var(--primary-bright); font-size:0.85rem;">${escapeHtml(gName)}</strong>
+                  <span class="badge badge-gold">مفعل: ${activeCnt} / ${list.length}</span>
+                </div>
+                <div class="chips-grid">
+                  ${list
+                    .map((a) => {
+                      const on = Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id);
+                      return `<button type="button" class="chip-btn ${on ? "selected" : ""}" onclick="toggleRosterMember('${a.id}')">${on ? "✅" : "➕"} ${escapeHtml(a.name)} (${escapeHtml(a.code)})</button>`;
+                    })
+                    .join("")}
+                </div>
+              </div>`;
+            })
+            .join("") || `<div style="text-align:center; padding:18px; color:var(--text-muted);">لا توجد حسابات مطابقة.</div>`;
+      }
+
+      async function toggleRosterMember(accId) {
+        const exh = getActiveExh();
+        const acc = state.accounts.find((a) => a.id === accId);
+        if (!exh || !acc) return;
+        const curr = Array.isArray(acc.active_exhibition_ids) ? [...acc.active_exhibition_ids] : [];
+        const has = curr.includes(exh.id);
+        const next = has ? curr.filter((id) => id !== exh.id) : [...curr, exh.id];
+        acc.active_exhibition_ids = next;
+        renderStaffRosterSection();
+        const stEl = document.getElementById("rosterSaveStatus");
+        stEl.textContent = "⏳ جاري الحفظ...";
+        try {
+          const { error } = await sb.from("accounts").update({ active_exhibition_ids: next }).eq("id", accId);
+          if (error) throw error;
+          stEl.textContent = "✅ تم التحديث فوراً";
+        } catch (err) {
+          console.error(err);
+          stEl.textContent = "❌ تعذر الحفظ";
+        }
+      }
+
+      // ==================== 3. TEAM DISTRIBUTION + OFFLINE QR ====================
+      function renderTeamDistSection() {
+        const exh = getActiveExh();
+        const wrap = document.getElementById("teamDistList");
+        if (!exh) return;
+        const dist = exh.team_distribution && typeof exh.team_distribution === "object" ? exh.team_distribution : {};
+        wrap.innerHTML = state.teamsList
+          .map((t, i) => {
+            const val = Number(dist[t] ?? 0);
+            return `
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-input); border:1px solid var(--border); border-radius:10px; margin-bottom:7px;">
+              <strong>🏷️ ${escapeHtml(t)}</strong>
+              <div style="display:flex; align-items:center; gap:6px;">
+                <span style="font-size:0.75rem; color:var(--text-muted);">الوزن:</span>
+                <input type="number" min="0" max="20" id="distWeight_${i}" class="form-control" style="width:74px; text-align:center;" value="${val}" />
+              </div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      async function saveTeamDistributionSettings() {
+        const exh = getActiveExh();
+        if (!exh) return;
+        const nextDist = {};
+        state.teamsList.forEach((t, i) => {
+          nextDist[t] = Math.max(0, Number(document.getElementById(`distWeight_${i}`)?.value || 0));
+        });
+        try {
+          const { error } = await sb.from("exhibitions").update({ team_distribution: nextDist }).eq("id", exh.id);
+          if (error) throw error;
+          exh.team_distribution = nextDist;
+          alert("✅ تم حفظ نسب التوزيع لهذا المعرض!");
+        } catch (err) {
+          console.error(err);
+          alert("❌ تعذر الحفظ: " + (err.message || ""));
+        }
+      }
+
+      function renderOfflineFlyerQR() {
+        const canvas = document.getElementById("offlineQrCanvas");
+        const exh = getActiveExh();
+        if (!canvas || !exh || typeof qrcode === "undefined") return;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#051224";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#2dd4bf";
+        ctx.font = "900 24px Cairo, sans-serif";
+        ctx.textAlign = "center";
+        ctx.fillText("B.almetr VIP — أوفلاين", canvas.width / 2, 46);
+        ctx.fillStyle = "#fcd34d";
+        ctx.font = "800 20px Cairo, sans-serif";
+        ctx.fillText(exh.name, canvas.width / 2, 82);
+
+        const qr = qrcode(0, "M");
+        qr.addData(`OFFLINE|${exh.id}`);
+        qr.make();
+        const count = qr.getModuleCount();
+        const qrSize = 280;
+        const cell = qrSize / count;
+        const ox = (canvas.width - qrSize) / 2;
+        const oy = 112;
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(ox - 14, oy - 14, qrSize + 28, qrSize + 28);
+        ctx.fillStyle = "#051224";
+        for (let r = 0; r < count; r++) {
+          for (let c = 0; c < count; c++) {
+            if (qr.isDark(r, c)) ctx.fillRect(ox + c * cell, oy + r * cell, Math.ceil(cell), Math.ceil(cell));
+          }
+        }
+        ctx.fillStyle = "#94a3b8";
+        ctx.font = "700 16px Cairo, sans-serif";
+        ctx.fillText("امسح الكود عند الريسبشن (0.5% مستقل)", canvas.width / 2, 456);
+      }
+
+      function downloadOfflineFlyerQR() {
+        const canvas = document.getElementById("offlineQrCanvas");
+        const exh = getActiveExh();
+        if (!canvas || !exh) return;
+        const a = document.createElement("a");
+        a.href = canvas.toDataURL("image/png");
+        a.download = `QR_Offline_${exh.name}.png`;
+        a.click();
+      }
+
+      // ==================== 4. BALMETR OFFERS ====================
+      function renderBalmetrOffersSection() {
+        const sel = document.getElementById("teamOffersSelect");
+        const prev = sel.value;
+        sel.innerHTML = state.teamsList.map((t) => `<option value="${escapeHtml(t)}">🏷️ تيم: ${escapeHtml(t)}</option>`).join("");
+        if (prev && state.teamsList.includes(prev)) sel.value = prev;
+        const team = sel.value || state.teamsList[0];
+        const ownerKey = `team_${team}`;
+        const list = state.offers.filter((o) => o.owner_key === ownerKey);
+
+        document.getElementById("offersCountBadge").textContent = `${list.length} / 20`;
+        document.getElementById("teamMissingOffersBanner").style.display = list.length === 0 ? "block" : "none";
+
+        const tbody = document.getElementById("teamOffersTbody");
+        if (list.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:16px; color:var(--text-muted);">لا توجد عروض مضافة لهذا التيم بعد.</td></tr>`;
+          return;
+        }
+        tbody.innerHTML = list
+          .map(
+            (o) => `
+          <tr>
+            <td><strong>${escapeHtml(o.project_name)}</strong> <span class="badge badge-mint">${escapeHtml(o.unit_type || "")}</span></td>
+            <td>${escapeHtml(o.area || "-")} | ${escapeHtml(o.total_price || "-")}</td>
+            <td>مقدم: ${escapeHtml(o.down_payment || "-")} | قسط: ${escapeHtml(o.installment || "-")} (${escapeHtml(o.years || "-")})</td>
+            <td><span class="badge badge-gold">${escapeHtml(o.roi || "-")}</span></td>
+            <td style="font-size:0.76rem;">${escapeHtml(o.details || "-")}</td>
+            <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteTeamOffer('${o.id}')">🗑️</button></td>
+          </tr>`
+          )
+          .join("");
+      }
+
+      async function addTeamOffer() {
+        const team = document.getElementById("teamOffersSelect").value;
+        const project = (document.getElementById("offerProject").value || "").trim();
+        if (!project) return alert("⚠️ اكتب اسم المشروع أولاً!");
+        const ownerKey = `team_${team}`;
+        const existing = state.offers.filter((o) => o.owner_key === ownerKey);
+        if (existing.length >= 20) return alert("⚠️ الحد الأقصى 20 عرض لكل تيم.");
+
+        const payload = {
+          owner_key: ownerKey,
+          project_name: project,
+          unit_type: document.getElementById("offerUnitType").value,
+          area: (document.getElementById("offerArea").value || "").trim(),
+          total_price: (document.getElementById("offerTotal").value || "").trim(),
+          down_payment: (document.getElementById("offerDown").value || "").trim(),
+          installment: (document.getElementById("offerInstallment").value || "").trim(),
+          years: (document.getElementById("offerYears").value || "").trim(),
+          roi: (document.getElementById("offerRoi").value || "").trim(),
+          details: (document.getElementById("offerDetails").value || "").trim(),
+        };
+        try {
+          const { data, error } = await sb.from("offers").insert(payload).select().single();
+          if (error) throw error;
+          state.offers.push(data);
+          ["offerProject", "offerArea", "offerTotal", "offerDown", "offerInstallment", "offerYears", "offerRoi", "offerDetails"].forEach((id) => {
+            document.getElementById(id).value = "";
+          });
+          renderBalmetrOffersSection();
+          renderMissingOffersGlobalAlert();
+        } catch (err) {
+          console.error(err);
+          alert("❌ تعذر إضافة العرض: " + (err.message || ""));
+        }
+      }
+
+      async function deleteTeamOffer(offerId) {
+        if (!confirm("حذف هذا العرض؟")) return;
+        try {
+          const { error } = await sb.from("offers").delete().eq("id", offerId);
+          if (error) throw error;
+          state.offers = state.offers.filter((o) => o.id !== offerId);
+          renderBalmetrOffersSection();
+          renderMissingOffersGlobalAlert();
+        } catch (err) {
+          alert("❌ تعذر الحذف");
+        }
+      }
+
+      // ==================== 5. ACCOUNTS & TEAMS ====================
+      function renderAccountsSection() {
+        // Teams chips
+        document.getElementById("teamsChipsWrap").innerHTML = state.teamsList
+          .map(
+            (t, i) => `
+          <span class="chip-btn selected">
+            🏷️ ${escapeHtml(t)}
+            ${state.teamsList.length > 1 ? `<button type="button" style="background:none;border:none;color:#fda4af;cursor:pointer;font-weight:900;" onclick="deleteTeamByIdx(${i})">✕</button>` : ""}
+          </span>`
+          )
+          .join("");
+
+        const teamOpts = state.teamsList.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+        document.getElementById("addAccTeam").innerHTML = teamOpts;
+        document.getElementById("editAccTeam").innerHTML = teamOpts;
+
+        const devs = state.accounts.filter((a) => a.role === "developer");
+        document.getElementById("addAccParentDev").innerHTML = devs
+          .map((d) => `<option value="${d.id}">${escapeHtml(d.name)} (${escapeHtml(d.code)})</option>`)
+          .join("");
+
+        syncAddRoleVisibility();
+        renderAccountsTable();
+      }
+
+      function syncAddRoleVisibility() {
+        const r = document.getElementById("addAccRole").value;
+        document.getElementById("addAccParentDevWrap").style.display = r === "dev_sales" ? "block" : "none";
+        document.getElementById("addAccTeamWrap").style.display = r === "dev_sales" ? "none" : "block";
+      }
+
+      async function addNewTeam() {
+        const inp = document.getElementById("newTeamNameInput");
+        const name = (inp.value || "").trim();
+        if (!name || state.teamsList.includes(name)) return;
+        state.teamsList.push(name);
+        inp.value = "";
+        await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(state.teamsList) });
+        renderAccountsSection();
+      }
+
+      async function deleteTeamByIdx(idx) {
+        const name = state.teamsList[idx];
+        if (!confirm(`حذف تيم "${name}"؟`)) return;
+        state.teamsList.splice(idx, 1);
+        await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(state.teamsList) });
+        renderAccountsSection();
+      }
+
+      function genRandomPass(prefix) {
+        return `${prefix}${Math.floor(1000 + Math.random() * 9000)}`;
+      }
+
+      async function createNewAccount() {
+        const role = document.getElementById("addAccRole").value;
+        const name = (document.getElementById("addAccName").value || "").trim();
+        if (!name) return alert("⚠️ اكتب الاسم أولاً!");
+        let code = (document.getElementById("addAccCode").value || "").trim().toUpperCase();
+        if (!code) {
+          const pref = role === "developer" ? "D" : role === "usher" ? "U" : role === "reception" ? "R" : "S";
+          code = `${pref}${state.accounts.length + 10}`;
+        }
+        const pass = (document.getElementById("addAccPass").value || "").trim() || genRandomPass(code);
+        const expoRoles = Array.from(document.querySelectorAll("#addAccExpoRoles input:checked")).map((i) => i.value);
+        const parentDevId = role === "dev_sales" ? document.getElementById("addAccParentDev").value || null : null;
+        const parentDev = parentDevId ? state.accounts.find((a) => a.id === parentDevId) : null;
+
+        const payload = {
+          role,
+          name,
+          code,
+          password: pass,
+          team: role === "dev_sales" && parentDev ? parentDev.name : document.getElementById("addAccTeam").value,
+          parent_admin_id: parentDevId,
+          phone: (document.getElementById("addAccPhone").value || "").trim(),
+          show_phone_in_report: document.getElementById("addAccShowPhone").checked,
+          expo_roles: expoRoles,
+          can_edit_request: document.getElementById("addAccCanEditReq").checked,
+          first_split_pct: Number(document.getElementById("addAccFirstPct").value || 0.5),
+          table_split_pct: Number(document.getElementById("addAccTablePct").value || 1.0),
+        };
+
+        try {
+          const { data, error } = await sb.from("accounts").insert(payload).select().single();
+          if (error) throw error;
+          state.accounts.push(data);
+          ["addAccName", "addAccCode", "addAccPass", "addAccPhone"].forEach((id) => (document.getElementById(id).value = ""));
+          document.querySelectorAll("#addAccExpoRoles input").forEach((i) => (i.checked = false));
+          renderAccountsTable();
+          alert(`✅ تم إنشاء حساب ${data.name} (${data.code}) بنجاح — الباسورد: ${data.password}`);
+        } catch (err) {
+          console.error(err);
+          alert("❌ خطأ في الإنشاء: " + (err.message || ""));
+        }
+      }
+
+      function renderAccountsTable() {
+        const q = (document.getElementById("accSearchInput")?.value || "").trim().toLowerCase();
+        const rFilt = document.getElementById("accRoleFilter")?.value || "ALL";
+        const list = state.accounts.filter((a) => {
+          if (a.role === "manager") return false;
+          if (rFilt !== "ALL" && a.role !== rFilt && !accountHasRole(a, rFilt)) return false;
+          if (q && !`${a.name} ${a.code} ${a.team || ""}`.toLowerCase().includes(q)) return false;
+          return true;
+        });
+        document.getElementById("accountsCountBadge").textContent = list.length;
+        const tbody = document.getElementById("accountsTbody");
+        tbody.innerHTML =
+          list
+            .map((a) => {
+              const extras = Array.isArray(a.expo_roles) && a.expo_roles.length > 0
+                ? a.expo_roles.map((r) => `<span class="badge badge-gold" style="font-size:0.66rem;">${getRoleLabel(r)}</span>`).join(" ")
+                : "";
+              return `
+              <tr>
+                <td><span class="badge badge-mint">${escapeHtml(a.code)}</span></td>
+                <td style="font-weight:800;">${escapeHtml(a.name)}</td>
+                <td>
+                  <div>${escapeHtml(getRoleLabel(a.role))} ${a.team ? `— <span style="color:var(--primary-bright);">${escapeHtml(a.team)}</span>` : ""}</div>
+                  ${extras ? `<div style="margin-top:3px;">${extras}</div>` : ""}
+                </td>
+                <td><code style="color:#fcd34d;" dir="ltr">${escapeHtml(a.password || "-")}</code></td>
+                <td style="font-size:0.75rem;">دعوة: ${a.first_split_pct ?? 0.5}% | ترابيزة: ${a.table_split_pct ?? 1}%</td>
+                <td style="white-space:nowrap;">
+                  <button type="button" class="btn btn-outline btn-sm" onclick="openEditAccModal('${a.id}')">✏️</button>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="deleteAccountById('${a.id}')">🗑️</button>
+                </td>
+              </tr>`;
+            })
+            .join("") || `<tr><td colspan="6" style="text-align:center; padding:16px; color:var(--text-muted);">لا توجد حسابات مطابقة.</td></tr>`;
+      }
+
+      function openEditAccModal(accId) {
+        const a = state.accounts.find((x) => x.id === accId);
+        if (!a) return;
+        document.getElementById("editAccId").value = a.id;
+        document.getElementById("editAccName").value = a.name || "";
+        document.getElementById("editAccCode").value = a.code || "";
+        document.getElementById("editAccPass").value = a.password || "";
+        document.getElementById("editAccPhone").value = a.phone || "";
+        document.getElementById("editAccRole").value = a.role || "sales";
+        document.getElementById("editAccTeam").value = a.team || state.teamsList[0];
+        document.getElementById("editAccFirstPct").value = a.first_split_pct ?? 0.5;
+        document.getElementById("editAccTablePct").value = a.table_split_pct ?? 1.0;
+        document.getElementById("editAccCanEditReq").checked = Boolean(a.can_edit_request);
+        document.getElementById("editAccShowPhone").checked = a.show_phone_in_report !== false;
+        const ex = Array.isArray(a.expo_roles) ? a.expo_roles : [];
+        document.querySelectorAll("#editAccExpoRoles input").forEach((inp) => {
+          inp.checked = ex.includes(inp.value);
+        });
+        document.getElementById("editAccModal").classList.add("show");
+      }
+
+      function closeEditAccModal() {
+        document.getElementById("editAccModal").classList.remove("show");
+      }
+
+      async function saveEditedAccount() {
+        const id = document.getElementById("editAccId").value;
+        const payload = {
+          name: (document.getElementById("editAccName").value || "").trim(),
+          code: (document.getElementById("editAccCode").value || "").trim().toUpperCase(),
+          password: (document.getElementById("editAccPass").value || "").trim(),
+          phone: (document.getElementById("editAccPhone").value || "").trim(),
+          role: document.getElementById("editAccRole").value,
+          team: document.getElementById("editAccTeam").value,
+          first_split_pct: Number(document.getElementById("editAccFirstPct").value ?? 0.5),
+          table_split_pct: Number(document.getElementById("editAccTablePct").value ?? 1.0),
+          can_edit_request: document.getElementById("editAccCanEditReq").checked,
+          show_phone_in_report: document.getElementById("editAccShowPhone").checked,
+          expo_roles: Array.from(document.querySelectorAll("#editAccExpoRoles input:checked")).map((i) => i.value),
+        };
+        try {
+          const { data, error } = await sb.from("accounts").update(payload).eq("id", id).select().single();
+          if (error) throw error;
+          const idx = state.accounts.findIndex((x) => x.id === id);
+          if (idx >= 0) state.accounts[idx] = data;
+          closeEditAccModal();
+          renderAccountsTable();
+        } catch (err) {
+          console.error(err);
+          alert("❌ تعذر الحفظ: " + (err.message || ""));
+        }
+      }
+
+      async function deleteAccountById(accId) {
+        const a = state.accounts.find((x) => x.id === accId);
+        if (!a || !confirm(`حذف حساب "${a.name}" نهائياً؟`)) return;
+        try {
+          const { error } = await sb.from("accounts").delete().eq("id", accId);
+          if (error) throw error;
+          state.accounts = state.accounts.filter((x) => x.id !== accId);
+          renderAccountsTable();
+        } catch (err) {
+          alert("❌ تعذر الحذف");
+        }
+      }
+
+      // ==================== 6. EXHIBITIONS VISIBILITY ====================
+      function renderExhibitionsSection() {
+        const tbody = document.getElementById("exhibitionsTbody");
+        tbody.innerHTML = state.exhibitions
+          .map(
+            (e) => `
+          <tr>
+            <td style="font-weight:800;">${escapeHtml(e.name)}</td>
+            <td>${e.hide_in_sales ? `<span class="badge badge-danger">🙈 مخفي عن السيلز</span>` : `<span class="badge badge-success">✅ ظاهر للجميع</span>`}</td>
+            <td><span class="badge badge-gold">#${e.next_seq || 131}</span></td>
+            <td>
+              <button type="button" class="btn ${e.hide_in_sales ? "btn-success" : "btn-outline"} btn-sm" onclick="toggleExhibitionVisibility('${e.id}')">
+                ${e.hide_in_sales ? "👁️ إظهار المعرض" : "🙈 إخفاء المعرض"}
+              </button>
+            </td>
+          </tr>`
+          )
+          .join("");
+      }
+
+      async function toggleExhibitionVisibility(exhId) {
+        const ex = state.exhibitions.find((e) => e.id === exhId);
+        if (!ex) return;
+        const nextVal = !Boolean(ex.hide_in_sales);
+        try {
+          const { error } = await sb.from("exhibitions").update({ hide_in_sales: nextVal }).eq("id", exhId);
+          if (error) throw error;
+          ex.hide_in_sales = nextVal;
+          renderExhibitionBar();
+          renderExhibitionsSection();
+        } catch (err) {
+          alert("❌ تعذر تحديث حالة المعرض");
+        }
+      }
+
+      // ==================== 7. REPORT SETTINGS ====================
+      function renderReportSettingsSection() {
+        const c = state.journeyReportConfig || DEFAULT_REPORT_CONFIG;
+        document.getElementById("repHotlineInput").value = c.hotline || "";
+        document.getElementById("repSubtitleInput").value = c.subtitle || "";
+        document.getElementById("repShowOfferChk").checked = c.showOfferDetails !== false;
+        document.getElementById("repShowNotesChk").checked = c.showNotes !== false;
+        document.getElementById("repShowPhoneChk").checked = c.showRepPhone !== false;
+      }
+
+      async function saveReportSettings() {
+        const cfg = {
+          hotline: (document.getElementById("repHotlineInput").value || "").trim(),
+          subtitle: (document.getElementById("repSubtitleInput").value || "").trim(),
+          showOfferDetails: document.getElementById("repShowOfferChk").checked,
+          showNotes: document.getElementById("repShowNotesChk").checked,
+          showRepPhone: document.getElementById("repShowPhoneChk").checked,
+        };
+        state.journeyReportConfig = cfg;
+        const stEl = document.getElementById("repSaveStatus");
+        stEl.textContent = "⏳ جاري الحفظ...";
+        try {
+          const { error } = await sb.from("system_settings").upsert({
+            key: "journey_report_config",
+            value: JSON.stringify(cfg),
+          });
+          if (error) throw error;
+          stEl.textContent = "✅ تم الحفظ بنجاح";
+        } catch (err) {
+          stEl.textContent = "❌ تعذر الحفظ";
+        }
+      }
+
+      // ==================== 8. ACCESS CONTROL ====================
+      function renderAccessControlSection() {
+        const nonMgrs = state.accounts.filter((a) => a.role !== "manager");
+        const grantedCnt = nonMgrs.filter(
+          (a) => Array.isArray(state.userPermissions?.[a.id]) && state.userPermissions[a.id].length > 0
+        ).length;
+        document.getElementById("accessKpiGrid").innerHTML = `
+          <div class="kpi-card"><div class="label">إجمالي الحسابات</div><div class="val">${nonMgrs.length}</div></div>
+          <div class="kpi-card"><div class="label">لديهم صلاحيات تحضير مفتوحة</div><div class="val" style="color:#34d399;">${grantedCnt}</div></div>`;
+
+        const q = (document.getElementById("accessSearchInput")?.value || "").trim().toLowerCase();
+        const rFilt = document.getElementById("accessRoleFilter")?.value || "ALL";
+        const filtered = nonMgrs.filter((a) => {
+          const p = Array.isArray(state.userPermissions?.[a.id]) ? state.userPermissions[a.id] : [];
+          if (rFilt === "HAS_ACCESS" && p.length === 0) return false;
+          if (rFilt !== "ALL" && rFilt !== "HAS_ACCESS" && a.role !== rFilt && !accountHasRole(a, rFilt)) return false;
+          if (q && !`${a.name} ${a.code} ${a.team || ""}`.toLowerCase().includes(q)) return false;
+          return true;
+        });
+
+        document.getElementById("accessUsersContainer").innerHTML =
+          filtered
+            .map((a) => {
+              const p = Array.isArray(state.userPermissions?.[a.id]) ? state.userPermissions[a.id] : [];
+              const pSet = new Set(p);
+              return `
+              <div class="access-user-card ${p.length > 0 ? "has-access" : ""}">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                  <div>
+                    <span class="badge badge-mint">${escapeHtml(a.code)}</span>
+                    <strong style="margin-right:6px;">${escapeHtml(a.name)}</strong>
+                    <span style="font-size:0.75rem; color:var(--text-muted); margin-right:5px;">(${escapeHtml(getRoleLabel(a.role))})</span>
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="setAllAccess('${a.id}', true)">✅ فتح الكل</button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="setAllAccess('${a.id}', false)">🚫 سحب الكل</button>
+                  </div>
+                </div>
+                <div class="chips-grid">
+                  ${DELEGATABLE_SECTIONS.map((s) => {
+                    const on = pSet.has(s.id);
+                    return `<button type="button" class="chip-btn ${on ? "selected" : ""}" onclick="toggleAccessPerm('${a.id}', '${s.id}')">${on ? "✅" : "➕"} ${s.label}</button>`;
+                  }).join("")}
+                </div>
+              </div>`;
+            })
+            .join("") || `<div style="text-align:center; padding:16px; color:var(--text-muted);">لا توجد حسابات مطابقة.</div>`;
+      }
+
+      async function saveAccessPerms() {
+        const stEl = document.getElementById("accessSaveStatus");
+        stEl.textContent = "⏳ جاري الحفظ...";
+        try {
+          const { error } = await sb.from("system_settings").upsert({
+            key: "user_permissions",
+            value: JSON.stringify(state.userPermissions || {}),
+          });
+          if (error) throw error;
+          stEl.textContent = "✅ تم حفظ الصلاحيات";
+        } catch (err) {
+          stEl.textContent = "❌ تعذر الحفظ";
+        }
+      }
+
+      async function toggleAccessPerm(accId, secId) {
+        const curr = Array.isArray(state.userPermissions?.[accId]) ? [...state.userPermissions[accId]] : [];
+        const idx = curr.indexOf(secId);
+        if (idx >= 0) curr.splice(idx, 1);
+        else curr.push(secId);
+        if (curr.length === 0) {
+          const next = { ...(state.userPermissions || {}) };
+          delete next[accId];
+          state.userPermissions = next;
+        } else {
+          state.userPermissions = { ...(state.userPermissions || {}), [accId]: curr };
+        }
+        renderAccessControlSection();
+        await saveAccessPerms();
+      }
+
+      async function setAllAccess(accId, grant) {
+        if (grant) {
+          state.userPermissions = {
+            ...(state.userPermissions || {}),
+            [accId]: DELEGATABLE_SECTIONS.map((s) => s.id),
+          };
+        } else {
+          const next = { ...(state.userPermissions || {}) };
+          delete next[accId];
+          state.userPermissions = next;
+        }
+        renderAccessControlSection();
+        await saveAccessPerms();
+      }
+
+      // ==================== 9. DEVOLEPOR_ONLY ====================
+      function renderDevOnlySection() {
+        document.getElementById("devLockCard").style.display = state.devUnlocked ? "none" : "block";
+        document.getElementById("devUnlockedContent").style.display = state.devUnlocked ? "block" : "none";
+        if (state.devUnlocked) {
+          document.getElementById("devSignupPassInput").value = state.developerSignupPass || "";
+        }
+      }
+
+      function unlockDevPanel() {
+        const val = (document.getElementById("devPassInput").value || "").trim();
+        if (val !== DEV_PANEL_PASS) return alert("❌ كلمة مرور غير صحيحة!");
+        state.devUnlocked = true;
+        document.getElementById("devPassInput").value = "";
+        renderDevOnlySection();
+      }
+
+      function lockDevPanel() {
+        state.devUnlocked = false;
+        renderDevOnlySection();
+      }
+
+      async function saveDevSignupPass() {
+        const val = (document.getElementById("devSignupPassInput").value || "").trim();
+        if (!val) return;
+        await sb.from("system_settings").upsert({ key: "developer_signup_pass", value: val });
+        state.developerSignupPass = val;
+        alert("✅ تم حفظ كلمة سر تسجيل المطورين!");
+      }
+
+      function downloadPrepBackupJSON() {
+        const payload = {
+          format: "balmetr_prep_backup_v1",
+          exported_at: new Date().toISOString(),
+          exhibitions: state.exhibitions,
+          accounts: state.accounts,
+          offers: state.offers,
+          system_settings: {
+            teams_list: state.teamsList,
+            team_sales_order: state.teamSalesOrder,
+            user_permissions: state.userPermissions,
+            journey_report_config: state.journeyReportConfig,
+          },
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json;charset=utf-8;" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `Balmetr_Prep_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+      }
+    </script>
+  </body>
+</html>
