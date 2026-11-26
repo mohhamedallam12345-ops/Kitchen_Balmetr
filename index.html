@@ -1,3 +1,8 @@
+
+
+
+رمز HTML
+prep_admin_v3
 <!doctype html>
 <html lang="ar" dir="rtl">
   <head>
@@ -909,11 +914,18 @@
           <!-- Teams Management -->
           <div class="card">
             <div class="card-header">
-              <div class="card-title">🏷️ إدارة التيمات (قوائم التوزيع)</div>
+              <div class="card-title">🏷️ إدارة التيمات والأقسام (تحكم مرن: تيم بيع / قسم تنظيمي)</div>
             </div>
+            <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px">
+              اضغط على أي تيم لتغيير نوعه: <strong>💼 تيم بيع</strong> يظهر في ترتيب القوة ونسب التوزيع والعروض، أما <strong>🏷️ قسم تنظيمي</strong> (مثل Organizing / Free) فيبقى للتنظيم فقط بدون عروض أو توزيع.
+            </p>
             <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px">
-              <input type="text" id="newTeamNameInput" class="form-control" style="flex: 1; min-width: 180px" placeholder="اسم تيم جديد (مثال: الاستلام الفوري)..." />
-              <button type="button" class="btn btn-primary" onclick="addNewTeam()">➕ إضافة تيم</button>
+              <input type="text" id="newTeamNameInput" class="form-control" style="flex: 1; min-width: 180px" placeholder="اسم تيم بيع جديد (مثال: الاستلام الفوري)..." />
+              <select id="newTeamTypeSelect" class="form-control" style="width: auto">
+                <option value="SALES">💼 تيم بيع (عروض وتوزيع)</option>
+                <option value="ORG">🏷️ قسم تنظيمي (بدون عروض)</option>
+              </select>
+              <button type="button" class="btn btn-primary" onclick="addNewTeam()">➕ إضافة</button>
             </div>
             <div id="teamsChipsWrap" class="chips-grid"></div>
           </div>
@@ -927,16 +939,26 @@
               <div>
                 <label class="form-label">الدور الأساسي:</label>
                 <select id="addAccRole" class="form-control" onchange="syncAddRoleVisibility()">
-                  <option value="sales">💼 سيلز بالمتر</option>
-                  <option value="usher">🚶 أشرز</option>
-                  <option value="reception">🛎️ ريسبشن</option>
-                  <option value="broker">🏢 بروكر</option>
-                  <option value="team_leader">🎖️ تيم ليدر</option>
-                  <option value="exh_manager">🎯 مدير معرض</option>
-                  <option value="developer">🏗️ شركة مطورة</option>
-                  <option value="dev_sales">🧑‍💼 سيلز مطور</option>
-                  <option value="admin_broker">🤝 أدمن بروكر</option>
-                  <option value="influencer">🌟 إنفلونسر</option>
+                  <optgroup label="💼 سيلز بالمتر (ليهم تيم بيع)">
+                    <option value="sales">💼 سيلز بالمتر</option>
+                    <option value="team_leader">🎖️ تيم ليدر</option>
+                  </optgroup>
+                  <optgroup label="🚶 تنظيم المعرض (بدون تيم بيع)">
+                    <option value="usher">🚶 أشرز</option>
+                    <option value="reception">🛎️ ريسبشن</option>
+                  </optgroup>
+                  <optgroup label="🏢 بروكرز وتسويق">
+                    <option value="broker">🏢 بروكر</option>
+                    <option value="admin_broker">🤝 أدمن بروكر</option>
+                    <option value="influencer">🌟 إنفلونسر</option>
+                  </optgroup>
+                  <optgroup label="🏗️ شركات مطورة">
+                    <option value="developer">🏗️ شركة مطورة</option>
+                    <option value="dev_sales">🧑‍💼 سيلز مطور</option>
+                  </optgroup>
+                  <optgroup label="👑 إدارة">
+                    <option value="exh_manager">🎯 مدير معرض</option>
+                  </optgroup>
                 </select>
               </div>
               <div id="addAccTeamWrap">
@@ -1214,21 +1236,31 @@
           </div>
           <div>
             <label class="form-label">الدور الأساسي:</label>
-            <select id="editAccRole" class="form-control">
-              <option value="sales">💼 سيلز بالمتر</option>
-              <option value="usher">🚶 أشرز</option>
-              <option value="reception">🛎️ ريسبشن</option>
-              <option value="broker">🏢 بروكر</option>
-              <option value="team_leader">🎖️ تيم ليدر</option>
-              <option value="exh_manager">🎯 مدير معرض</option>
-              <option value="developer">🏗️ شركة مطورة</option>
-              <option value="dev_sales">🧑‍💼 سيلز مطور</option>
-              <option value="admin_broker">🤝 أدمن بروكر</option>
-              <option value="influencer">🌟 إنفلونسر</option>
+            <select id="editAccRole" class="form-control" onchange="syncEditRoleVisibility()">
+                  <optgroup label="💼 سيلز بالمتر (ليهم تيم بيع)">
+                    <option value="sales">💼 سيلز بالمتر</option>
+                    <option value="team_leader">🎖️ تيم ليدر</option>
+                  </optgroup>
+                  <optgroup label="🚶 تنظيم المعرض (بدون تيم بيع)">
+                    <option value="usher">🚶 أشرز</option>
+                    <option value="reception">🛎️ ريسبشن</option>
+                  </optgroup>
+                  <optgroup label="🏢 بروكرز وتسويق">
+                    <option value="broker">🏢 بروكر</option>
+                    <option value="admin_broker">🤝 أدمن بروكر</option>
+                    <option value="influencer">🌟 إنفلونسر</option>
+                  </optgroup>
+                  <optgroup label="🏗️ شركات مطورة">
+                    <option value="developer">🏗️ شركة مطورة</option>
+                    <option value="dev_sales">🧑‍💼 سيلز مطور</option>
+                  </optgroup>
+                  <optgroup label="👑 إدارة">
+                    <option value="exh_manager">🎯 مدير معرض</option>
+                  </optgroup>
             </select>
           </div>
-          <div>
-            <label class="form-label">التيم:</label>
+          <div id="editAccTeamWrap">
+            <label class="form-label">تيم البيع:</label>
             <select id="editAccTeam" class="form-control"></select>
           </div>
           <div>
@@ -1310,6 +1342,8 @@
         accounts: [],
         offers: [],
         teamsList: ["المعرض", "الجمعية", "الوديعة", "الاستلام الفوري", "بروكر"],
+        teamMetaConfig: {},
+        exhRoleOverrides: {},
         teamSalesOrder: {},
         userPermissions: {},
         journeyReportConfig: { ...DEFAULT_REPORT_CONFIG },
@@ -1346,6 +1380,43 @@
         if (!acc) return false;
         if (acc.role === role) return true;
         return Array.isArray(acc.expo_roles) && acc.expo_roles.includes(role);
+      }
+
+
+      const NON_SALES_TEAM_HINTS = ["organizing", "manege", "manage", "free", "مطور", "ادارة", "إدارة", "تنظيم", "ريسبشن", "أشر", "اشر"];
+      function isSalesTeamName(teamName) {
+        const cfg = state.teamMetaConfig?.[teamName];
+        if (cfg && typeof cfg.isSalesTeam === "boolean") return cfg.isSalesTeam;
+        const low = String(teamName || "").trim().toLowerCase();
+        if (!low) return false;
+        return !NON_SALES_TEAM_HINTS.some((h) => low.includes(h));
+      }
+
+      function getSalesTeamsList() {
+        const list = state.teamsList.filter((t) => isSalesTeamName(t));
+        return list.length > 0 ? list : state.teamsList;
+      }
+
+      function getExhRoleOverride(exhId, accId) {
+        if (!exhId || !accId) return "";
+        return state.exhRoleOverrides?.[`${exhId}::${accId}`] || "";
+      }
+
+      function getEffectiveRoleForExh(acc, exhId) {
+        if (!acc) return "";
+        return getExhRoleOverride(exhId, acc.id) || acc.role || "";
+      }
+
+      function getRoleCategory(role) {
+        if (["sales", "team_leader"].includes(role)) return "sales";
+        if (["usher", "reception"].includes(role)) return "organizing";
+        if (["broker", "admin_broker", "influencer"].includes(role)) return "broker";
+        if (["developer", "dev_sales", "dev_manager"].includes(role)) return "developer";
+        return "management";
+      }
+
+      function roleNeedsTeamField(role) {
+        return role === "sales" || role === "team_leader";
       }
 
       function getRoleLabel(r) {
@@ -1486,6 +1557,16 @@
                 const p = JSON.parse(row.value);
                 if (Array.isArray(p) && p.length > 0) state.teamsList = p;
               } catch (e) {}
+            } else if (row.key === "team_meta_config") {
+              try {
+                const p = JSON.parse(row.value);
+                if (p && typeof p === "object") state.teamMetaConfig = p;
+              } catch (e) {}
+            } else if (row.key === "exh_role_overrides") {
+              try {
+                const p = JSON.parse(row.value);
+                if (p && typeof p === "object") state.exhRoleOverrides = p;
+              } catch (e) {}
             } else if (row.key === "team_sales_order") {
               try {
                 const p = JSON.parse(row.value);
@@ -1604,7 +1685,7 @@
       function renderMissingOffersGlobalAlert() {
         const box = document.getElementById("globalMissingOffersAlert");
         if (!box) return;
-        const missingTeams = state.teamsList.filter(
+        const missingTeams = getSalesTeamsList().filter(
           (t) => !state.offers.some((o) => o.owner_key === `team_${t}`)
         );
         const activeExh = getActiveExh();
@@ -1667,9 +1748,11 @@
         return enable ? [...cleaned, targetExhId] : cleaned;
       }
 
-      function isTableSalesEligible(acc, teamName) {
-        if (!acc || acc.role === "manager" || acc.role === "developer") return false;
-        const isSalesOrBroker = accountHasRole(acc, "sales") || accountHasRole(acc, "broker");
+      function isTableSalesEligible(acc, teamName, exhId = null) {
+        if (!acc || acc.role === "manager" || acc.role === "developer" || acc.role === "dev_sales") return false;
+        const ovr = exhId ? getExhRoleOverride(exhId, acc.id) : "";
+        if (ovr && !["sales", "broker"].includes(ovr)) return false;
+        const isSalesOrBroker = ovr === "sales" || ovr === "broker" || accountHasRole(acc, "sales") || accountHasRole(acc, "broker");
         if (!isSalesOrBroker) return false;
         return (acc.team || "المعرض") === teamName;
       }
@@ -1679,16 +1762,12 @@
       }
 
       function getTeamMembersForExhPower(exhId, teamName) {
-        const allEligible = state.accounts.filter((a) => isTableSalesEligible(a, teamName));
+        const allEligible = state.accounts.filter((a) => isTableSalesEligible(a, teamName, exhId));
         const activeInExh = exhId
           ? allEligible.filter((a) => Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exhId))
           : allEligible;
         const inactiveInExh = exhId
-          ? allEligible.filter(
-              (a) =>
-                (!Array.isArray(a.active_exhibition_ids) || !a.active_exhibition_ids.includes(exhId)) &&
-                !isAssignedToAnotherVisibleExh(a, exhId)
-            )
+          ? allEligible.filter((a) => !Array.isArray(a.active_exhibition_ids) || !a.active_exhibition_ids.includes(exhId))
           : [];
 
         const exhKey = getExhTeamOrderKey(exhId, teamName);
@@ -1710,7 +1789,7 @@
 
       function renderSalesPowerSection() {
         const exh = getActiveExh();
-        const teams = state.teamsList.length > 0 ? state.teamsList : ["المعرض"];
+        const teams = getSalesTeamsList();
         if (state.activePowerTeamIdx >= teams.length || state.activePowerTeamIdx < 0) {
           state.activePowerTeamIdx = 0;
         }
@@ -1759,10 +1838,13 @@
         if (inactWrap) {
           inactWrap.innerHTML =
             inactive
-              .map(
-                (s) =>
-                  `<button type="button" class="chip-btn" onclick="toggleSalesOnExhFromPower('${s.id}')">➕ ${escapeHtml(s.name)} (${escapeHtml(s.code)})</button>`
-              )
+              .map((s) => {
+                const otherExh = isAssignedToAnotherVisibleExh(s, exh.id)
+                  ? state.exhibitions.find((e) => e.id !== exh.id && !e.hide_in_sales && (s.active_exhibition_ids || []).includes(e.id))
+                  : null;
+                const tag = otherExh ? ` — 🔄 في ${escapeHtml(otherExh.name)}` : "";
+                return `<button type="button" class="chip-btn" onclick="toggleSalesOnExhFromPower('${s.id}')">➕ ${escapeHtml(s.name)} (${escapeHtml(s.code)})${tag}</button>`;
+              })
               .join("") || `<span style="font-size:0.78rem; color:var(--success);">✅ كل سيلز التيم مفعلين بالفعل على هذا المعرض.</span>`;
         }
       }
@@ -1795,7 +1877,7 @@
 
       async function movePowerOrder(teamIdx, accId, direction) {
         const exh = getActiveExh();
-        const teamName = state.teamsList[teamIdx];
+        const teamName = getSalesTeamsList()[teamIdx];
         if (!exh || !teamName) return;
         const { active } = getTeamMembersForExhPower(exh.id, teamName);
         const ids = active.map((a) => a.id);
@@ -1831,7 +1913,7 @@
         }
       }
 
-      // ==================== 2. STAFF ROSTER ====================
+      // ==================== 2. STAFF ROSTER (5 CATEGORIES + PER-EXHIBITION DUTY OVERRIDE) ====================
       function renderStaffRosterSection() {
         const exh = getActiveExh();
         const wrap = document.getElementById("staffRosterContainer");
@@ -1844,16 +1926,25 @@
 
         const filtered = state.accounts.filter((a) => {
           if (a.role === "manager") return false;
-          const isInThis = Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id);
-          if (!isInThis && isAssignedToAnotherVisibleExh(a, exh.id)) return false;
-          if (rFilt !== "ALL" && a.role !== rFilt && !accountHasRole(a, rFilt)) return false;
-          if (q && !`${a.name} ${a.code} ${a.team || ""}`.toLowerCase().includes(q)) return false;
+          const effRole = getEffectiveRoleForExh(a, exh.id);
+          if (rFilt !== "ALL" && a.role !== rFilt && effRole !== rFilt && !accountHasRole(a, rFilt)) return false;
+          if (q && !`${a.name} ${a.code} ${a.team || ""} ${getRoleLabel(a.role)}`.toLowerCase().includes(q)) return false;
           return true;
         });
 
         const groups = {};
         filtered.forEach((a) => {
-          const g = a.role === "developer" || a.role === "dev_sales" ? "🏗️ المطورين وسيلز المطورين" : `🏷️ تيم: ${a.team || "عام"}`;
+          const cat = getRoleCategory(a.role);
+          let g = "👑 الإدارة ومديري المعارض";
+          if (cat === "sales") {
+            g = a.team && isSalesTeamName(a.team) ? `💼 سيلز بالمتر — تيم: ${a.team}` : "💼 سيلز بالمتر (عام)";
+          } else if (cat === "organizing") {
+            g = "🚶 تنظيم المعرض (أشرز وريسبشن)";
+          } else if (cat === "broker") {
+            g = "🏢 بروكرز وتسويق";
+          } else if (cat === "developer") {
+            g = "🏗️ الشركات المطورة وسيلز المطورين";
+          }
           if (!groups[g]) groups[g] = [];
           groups[g].push(a);
         });
@@ -1868,17 +1959,55 @@
                   <strong style="color:var(--primary-bright); font-size:0.85rem;">${escapeHtml(gName)}</strong>
                   <span class="badge badge-gold">مفعل: ${activeCnt} / ${list.length}</span>
                 </div>
-                <div class="chips-grid">
+                <div class="chips-grid" style="align-items:center;">
                   ${list
                     .map((a) => {
                       const on = Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id);
-                      return `<button type="button" class="chip-btn ${on ? "selected" : ""}" onclick="toggleRosterMember('${a.id}')">${on ? "✅" : "➕"} ${escapeHtml(a.name)} (${escapeHtml(a.code)})</button>`;
+                      const ovr = getExhRoleOverride(exh.id, a.id);
+                      const otherExh = !on && isAssignedToAnotherVisibleExh(a, exh.id)
+                        ? state.exhibitions.find((e) => e.id !== exh.id && !e.hide_in_sales && (a.active_exhibition_ids || []).includes(e.id))
+                        : null;
+                      const showDutyPicker = on && !["developer", "dev_sales", "admin_broker", "influencer"].includes(a.role);
+                      return `<div style="display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap; background:${on ? "rgba(20,184,166,0.12)" : "transparent"}; border:${on ? "1px solid var(--border-strong)" : "none"}; border-radius:999px; padding:${on ? "3px 6px" : "0"};">
+                        <button type="button" class="chip-btn ${on ? "selected" : ""}" style="${on ? "border:none; background:transparent; padding:4px 7px;" : ""}" onclick="toggleRosterMember('${a.id}')">${on ? "✅" : "➕"} ${escapeHtml(a.name)} (${escapeHtml(a.code)})${otherExh ? ` — 🔄 ${escapeHtml(otherExh.name)}` : ""}</button>
+                        ${showDutyPicker ? `<select onchange="setExhRoleOverride('${a.id}', this.value)" title="مهمته في هذا المعرض فقط" style="background:#051224; color:#fcd34d; border:1px solid rgba(245,176,65,0.45); border-radius:999px; font-family:inherit; font-size:0.71rem; font-weight:800; padding:3px 8px; cursor:pointer;">
+                          <option value="" ${!ovr ? "selected" : ""}>الأساسي (${escapeHtml(getRoleLabel(a.role))})</option>
+                          <option value="sales" ${ovr === "sales" ? "selected" : ""}>💼 ترابيزة سيلز</option>
+                          <option value="usher" ${ovr === "usher" ? "selected" : ""}>🚶 أشرز (اليوم)</option>
+                          <option value="reception" ${ovr === "reception" ? "selected" : ""}>🛎️ ريسبشن (اليوم)</option>
+                          <option value="broker" ${ovr === "broker" ? "selected" : ""}>🏢 بروكر (اليوم)</option>
+                          <option value="exh_manager" ${ovr === "exh_manager" ? "selected" : ""}>🎯 مدير معرض (اليوم)</option>
+                        </select>` : ""}
+                      </div>`;
                     })
                     .join("")}
                 </div>
               </div>`;
             })
             .join("") || `<div style="text-align:center; padding:18px; color:var(--text-muted);">لا توجد حسابات مطابقة.</div>`;
+      }
+
+      async function setExhRoleOverride(accId, nextRole) {
+        const exh = getActiveExh();
+        if (!exh) return;
+        const key = `${exh.id}::${accId}`;
+        const nextMap = { ...(state.exhRoleOverrides || {}) };
+        if (!nextRole) delete nextMap[key];
+        else nextMap[key] = nextRole;
+        state.exhRoleOverrides = nextMap;
+        const stEl = document.getElementById("rosterSaveStatus");
+        if (stEl) stEl.textContent = "⏳ جاري حفظ مهمة المعرض...";
+        try {
+          const { error } = await sb.from("system_settings").upsert({
+            key: "exh_role_overrides",
+            value: JSON.stringify(nextMap),
+          });
+          if (error) throw error;
+          if (stEl) stEl.textContent = "✅ تم تحديث مهمة الموظف في هذا المعرض فوراً";
+        } catch (err) {
+          console.error(err);
+          if (stEl) stEl.textContent = "❌ تعذر الحفظ";
+        }
       }
 
       async function toggleRosterMember(accId) {
@@ -1908,7 +2037,7 @@
         const wrap = document.getElementById("teamDistList");
         if (!exh) return;
         const savedDist = exh.layout_config?.teamDistribution || {};
-        wrap.innerHTML = state.teamsList
+        wrap.innerHTML = getSalesTeamsList()
           .map((t, i) => {
             const cfg = savedDist[t] || { active: true, weight: 1 };
             const isAct = cfg.active !== false;
@@ -1932,7 +2061,7 @@
         const exh = getActiveExh();
         if (!exh) return;
         const nextDist = {};
-        state.teamsList.forEach((t, i) => {
+        getSalesTeamsList().forEach((t, i) => {
           const active = document.getElementById(`distActive_${i}`)?.checked !== false;
           const weight = Math.max(0, Number(document.getElementById(`distWeight_${i}`)?.value || 0));
           nextDist[t] = { active, weight };
@@ -2000,9 +2129,10 @@
       function renderBalmetrOffersSection() {
         const sel = document.getElementById("teamOffersSelect");
         const prev = sel.value;
-        sel.innerHTML = state.teamsList.map((t) => `<option value="${escapeHtml(t)}">🏷️ تيم: ${escapeHtml(t)}</option>`).join("");
-        if (prev && state.teamsList.includes(prev)) sel.value = prev;
-        const team = sel.value || state.teamsList[0];
+        const salesTeams = getSalesTeamsList();
+        sel.innerHTML = salesTeams.map((t) => `<option value="${escapeHtml(t)}">💼 تيم: ${escapeHtml(t)}</option>`).join("");
+        if (prev && salesTeams.includes(prev)) sel.value = prev;
+        const team = sel.value || salesTeams[0];
         const ownerKey = `team_${team}`;
         const list = state.offers.filter((o) => o.owner_key === ownerKey);
 
@@ -2107,18 +2237,23 @@
 
       // ==================== 5. ACCOUNTS & TEAMS ====================
       function renderAccountsSection() {
-        // Teams chips
+        // Flexible Teams chips (toggle Sales Team vs Organizing, rename, delete)
         document.getElementById("teamsChipsWrap").innerHTML = state.teamsList
-          .map(
-            (t, i) => `
-          <span class="chip-btn selected">
-            🏷️ ${escapeHtml(t)}
-            ${state.teamsList.length > 1 ? `<button type="button" style="background:none;border:none;color:#fda4af;cursor:pointer;font-weight:900;" onclick="deleteTeamByIdx(${i})">✕</button>` : ""}
-          </span>`
-          )
+          .map((t, i) => {
+            const isSales = isSalesTeamName(t);
+            return `
+          <span class="chip-btn ${isSales ? "selected" : ""}" style="gap:7px;">
+            <button type="button" style="background:none;border:none;color:inherit;cursor:pointer;font-family:inherit;font-weight:800;font-size:inherit;" title="اضغط للتبديل بين تيم بيع وقسم تنظيمي" onclick="toggleTeamSalesType(${i})">
+              ${isSales ? "💼" : "🏷️"} ${escapeHtml(t)} <small style="opacity:0.78;">(${isSales ? "تيم بيع" : "تنظيمي"})</small>
+            </button>
+            <button type="button" style="background:none;border:none;color:#fcd34d;cursor:pointer;font-weight:900;" title="تعديل الاسم" onclick="renameTeamByIdx(${i})">✏️</button>
+            ${state.teamsList.length > 1 ? `<button type="button" style="background:none;border:none;color:#fda4af;cursor:pointer;font-weight:900;" title="حذف" onclick="deleteTeamByIdx(${i})">✕</button>` : ""}
+          </span>`;
+          })
           .join("");
 
-        const teamOpts = state.teamsList.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+        const salesTeams = getSalesTeamsList();
+        const teamOpts = salesTeams.map((t) => `<option value="${escapeHtml(t)}">💼 ${escapeHtml(t)}</option>`).join("");
         document.getElementById("addAccTeam").innerHTML = teamOpts;
         document.getElementById("editAccTeam").innerHTML = teamOpts;
 
@@ -2134,25 +2269,75 @@
       function syncAddRoleVisibility() {
         const r = document.getElementById("addAccRole").value;
         document.getElementById("addAccParentDevWrap").style.display = r === "dev_sales" ? "block" : "none";
-        document.getElementById("addAccTeamWrap").style.display = r === "dev_sales" ? "none" : "block";
+        document.getElementById("addAccTeamWrap").style.display = roleNeedsTeamField(r) ? "block" : "none";
+      }
+
+      function syncEditRoleVisibility() {
+        const r = document.getElementById("editAccRole").value;
+        const wrap = document.getElementById("editAccTeamWrap");
+        if (wrap) wrap.style.display = roleNeedsTeamField(r) ? "block" : "none";
+      }
+
+      async function saveTeamMetaConfig() {
+        const { error } = await sb.from("system_settings").upsert({
+          key: "team_meta_config",
+          value: JSON.stringify(state.teamMetaConfig || {}),
+        });
+        if (error) alert("❌ تعذر حفظ إعداد التيم: " + (error.message || ""));
+      }
+
+      async function toggleTeamSalesType(idx) {
+        const name = state.teamsList[idx];
+        if (!name) return;
+        const nextVal = !isSalesTeamName(name);
+        state.teamMetaConfig = { ...(state.teamMetaConfig || {}), [name]: { isSalesTeam: nextVal } };
+        renderAccountsSection();
+        renderMissingOffersGlobalAlert();
+        await saveTeamMetaConfig();
+      }
+
+      async function renameTeamByIdx(idx) {
+        const oldName = state.teamsList[idx];
+        if (!oldName) return;
+        const nextName = (prompt("الاسم الجديد للتيم:", oldName) || "").trim();
+        if (!nextName || nextName === oldName || state.teamsList.includes(nextName)) return;
+        state.teamsList[idx] = nextName;
+        if (state.teamMetaConfig?.[oldName]) {
+          state.teamMetaConfig[nextName] = state.teamMetaConfig[oldName];
+          delete state.teamMetaConfig[oldName];
+        }
+        const { error } = await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(state.teamsList) });
+        if (error) return alert("❌ تعذر حفظ التعديل!");
+        await saveTeamMetaConfig();
+        renderAccountsSection();
+        renderMissingOffersGlobalAlert();
       }
 
       async function addNewTeam() {
         const inp = document.getElementById("newTeamNameInput");
         const name = (inp.value || "").trim();
         if (!name || state.teamsList.includes(name)) return;
+        const isSales = (document.getElementById("newTeamTypeSelect")?.value || "SALES") === "SALES";
         state.teamsList.push(name);
+        state.teamMetaConfig = { ...(state.teamMetaConfig || {}), [name]: { isSalesTeam: isSales } };
         inp.value = "";
-        await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(state.teamsList) });
+        const { error } = await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(state.teamsList) });
+        if (error) return alert("❌ تعذر حفظ التيم!");
+        await saveTeamMetaConfig();
         renderAccountsSection();
+        renderMissingOffersGlobalAlert();
       }
 
       async function deleteTeamByIdx(idx) {
         const name = state.teamsList[idx];
         if (!confirm(`حذف تيم "${name}"؟`)) return;
         state.teamsList.splice(idx, 1);
-        await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(state.teamsList) });
+        if (state.teamMetaConfig?.[name]) delete state.teamMetaConfig[name];
+        const { error } = await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(state.teamsList) });
+        if (error) return alert("❌ تعذر الحذف!");
+        await saveTeamMetaConfig();
         renderAccountsSection();
+        renderMissingOffersGlobalAlert();
       }
 
       function genRandomPass(prefix) {
@@ -2186,7 +2371,7 @@
           name,
           code,
           password: pass,
-          team: role === "dev_sales" && parentDev ? parentDev.name : document.getElementById("addAccTeam").value,
+          team: role === "dev_sales" && parentDev ? parentDev.name : roleNeedsTeamField(role) ? document.getElementById("addAccTeam").value : "",
           parent_admin_id: parentDevId,
           phone: (document.getElementById("addAccPhone").value || "").trim(),
           show_phone_in_report: document.getElementById("addAccShowPhone").checked,
@@ -2255,7 +2440,9 @@
         document.getElementById("editAccPass").value = a.password || "";
         document.getElementById("editAccPhone").value = a.phone || "";
         document.getElementById("editAccRole").value = a.role || "sales";
-        document.getElementById("editAccTeam").value = a.team || state.teamsList[0];
+        const salesTeams = getSalesTeamsList();
+        document.getElementById("editAccTeam").value = salesTeams.includes(a.team) ? a.team : salesTeams[0] || "";
+        syncEditRoleVisibility();
         document.getElementById("editAccFirstPct").value = a.first_split_pct ?? 0.5;
         document.getElementById("editAccTablePct").value = a.table_split_pct ?? 1.0;
         document.getElementById("editAccCanEditReq").checked = Boolean(a.can_edit_request);
@@ -2279,7 +2466,7 @@
           password: (document.getElementById("editAccPass").value || "").trim(),
           phone: (document.getElementById("editAccPhone").value || "").trim(),
           role: document.getElementById("editAccRole").value,
-          team: document.getElementById("editAccTeam").value,
+          team: roleNeedsTeamField(document.getElementById("editAccRole").value) ? document.getElementById("editAccTeam").value : "",
           first_split_pct: Number(document.getElementById("editAccFirstPct").value ?? 0.5),
           table_split_pct: Number(document.getElementById("editAccTablePct").value ?? 1.0),
           can_edit_request: document.getElementById("editAccCanEditReq").checked,
@@ -2670,3 +2857,4 @@
     </script>
   </body>
 </html>
+Developing Python script for admin interface management
