@@ -1448,7 +1448,7 @@
       function logoutPrep() {
         if (!confirm("هل تريد تسجيل الخروج؟")) return;
         const tok = state.sessionToken;
-        if (tok) sb.rpc("logout_session", { p_token: tok }).catch(() => {});
+        if (tok) try { sb.rpc("logout_session", { p_token: tok }).then(() => {}, () => {}); } catch (e) {}
         state.sessionToken = null;
         state.currentUser = null;
         state.devUnlocked = false;
