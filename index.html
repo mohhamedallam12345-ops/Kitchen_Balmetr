@@ -1059,29 +1059,67 @@
           </div>
         </section>
 
-        <!-- SECTION 7: JOURNEY REPORT SETTINGS -->
+        <!-- SECTION 7: JOURNEY REPORT DESIGNER & LIVE PREVIEW -->
         <section id="secReportSettings" class="prep-section">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">📄 إعدادات تقرير رحلة العميل المطبوع</div>
-            </div>
-            <div class="grid-2" style="margin-bottom: 12px">
-              <div>
-                <label class="form-label">الخط الساخن / رقم التواصل:</label>
-                <input type="text" id="repHotlineInput" class="form-control" dir="ltr" placeholder="19XXX" />
+          <div class="grid-2" style="align-items: start">
+            <div class="card" style="margin-bottom: 0">
+              <div class="card-header">
+                <div class="card-title">📄 تصميم وإعدادات تقرير رحلة العميل</div>
+                <span id="repSaveStatus" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-bright)"></span>
               </div>
-              <div>
-                <label class="form-label">العنوان الفرعي / الشعار:</label>
-                <input type="text" id="repSubtitleInput" class="form-control" placeholder="تقرير رحلتك الاستثمارية مع B.almetr" />
+              <div style="display: flex; flex-direction: column; gap: 10px">
+                <div>
+                  <label class="form-label">عنوان التقرير الرئيسي:</label>
+                  <input type="text" id="repTitleInput" class="form-control" placeholder="تقرير رحلتك الاستثمارية — B.almetr VIP" oninput="updateReportLivePreview()" />
+                </div>
+                <div>
+                  <label class="form-label">العنوان الفرعي / الشعار:</label>
+                  <input type="text" id="repSubtitleInput" class="form-control" placeholder="شريكك العقاري الموثوق" oninput="updateReportLivePreview()" />
+                </div>
+                <div>
+                  <label class="form-label">رسالة ترحيب / مقدمة أعلى التقرير:</label>
+                  <textarea id="repHeaderMsgInput" class="form-control" rows="2" placeholder="سعدنا جداً بتشريفك في معرض B.almetr VIP، وإليك ملخص العروض المناسبة لطلبك..." oninput="updateReportLivePreview()"></textarea>
+                </div>
+                <div>
+                  <label class="form-label">رسالة ختامية / نصيحة أسفل التقرير:</label>
+                  <textarea id="repFooterMsgInput" class="form-control" rows="2" placeholder="لأي استفسار أو حجز إضافي، فريقنا متاح لخدمتك على مدار الساعة." oninput="updateReportLivePreview()"></textarea>
+                </div>
+                <div class="grid-3">
+                  <div>
+                    <label class="form-label">الخط الساخن:</label>
+                    <input type="text" id="repHotlineInput" class="form-control" dir="ltr" placeholder="19000" oninput="updateReportLivePreview()" />
+                  </div>
+                  <div>
+                    <label class="form-label">واتساب خدمة العملاء:</label>
+                    <input type="text" id="repWhatsappInput" class="form-control" dir="ltr" placeholder="010XXXXXXXX" oninput="updateReportLivePreview()" />
+                  </div>
+                  <div>
+                    <label class="form-label">الموقع الإلكتروني:</label>
+                    <input type="text" id="repWebsiteInput" class="form-control" dir="ltr" placeholder="balmetr.com" oninput="updateReportLivePreview()" />
+                  </div>
+                </div>
+                <div style="background: var(--bg-input); border: 1px solid var(--border); border-radius: 12px; padding: 10px">
+                  <div style="font-size: 0.78rem; font-weight: 900; color: var(--gold); margin-bottom: 7px">🎛️ العناصر الظاهرة في التقرير المطبوع:</div>
+                  <div class="chips-grid">
+                    <label class="role-check-item"><input type="checkbox" id="repShowOfferChk" checked onchange="updateReportLivePreview()" /> 🎁 تفاصيل العرض</label>
+                    <label class="role-check-item"><input type="checkbox" id="repShowNotesChk" checked onchange="updateReportLivePreview()" /> 📝 ملاحظات الجلسة</label>
+                    <label class="role-check-item"><input type="checkbox" id="repShowPhoneChk" checked onchange="updateReportLivePreview()" /> 📱 رقم تليفون السيلز</label>
+                    <label class="role-check-item"><input type="checkbox" id="repShowClientPhoneChk" checked onchange="updateReportLivePreview()" /> 👤 رقم تليفون العميل</label>
+                    <label class="role-check-item"><input type="checkbox" id="repShowDateChk" checked onchange="updateReportLivePreview()" /> 📅 التاريخ والوقت</label>
+                  </div>
+                </div>
+                <button type="button" class="btn btn-gold btn-block" onclick="saveReportSettings()">💾 حفظ وتطبيق إعدادات التقرير فوراً</button>
               </div>
             </div>
-            <div class="chips-grid" style="margin-bottom: 14px">
-              <label class="role-check-item"><input type="checkbox" id="repShowOfferChk" checked /> 🎁 إظهار تفاصيل العرض المرشح</label>
-              <label class="role-check-item"><input type="checkbox" id="repShowNotesChk" checked /> 📝 إظهار ملاحظات الجلسة</label>
-              <label class="role-check-item"><input type="checkbox" id="repShowPhoneChk" checked /> 📱 إظهار رقم السيلز</label>
+
+            <!-- Live Printable A4 Preview -->
+            <div class="card" style="margin-bottom: 0">
+              <div class="card-header">
+                <div class="card-title">👁️ معاينة حية لشكل التقرير المطبوع</div>
+                <span class="badge badge-mint">تحديث فوري</span>
+              </div>
+              <div id="repLivePreviewBox" style="background: #ffffff; color: #0f172a; border-radius: 12px; padding: 18px; border: 2px solid var(--border-strong); font-family: 'Cairo', sans-serif; box-shadow: 0 10px 30px rgba(0,0,0,0.35)"></div>
             </div>
-            <button type="button" class="btn btn-gold" onclick="saveReportSettings()">💾 حفظ إعدادات التقرير</button>
-            <span id="repSaveStatus" style="margin-right: 10px; font-size: 0.8rem; font-weight: 800; color: var(--primary-bright)"></span>
           </div>
         </section>
 
@@ -1139,6 +1177,11 @@
                   <label class="form-label">تحميل نسخة احتياطية كاملة (إعدادات + حسابات + معارض):</label>
                   <button type="button" class="btn btn-success btn-block" onclick="downloadPrepBackupJSON()">📥 تحميل Backup JSON الآن</button>
                 </div>
+              </div>
+              <div style="background: var(--bg-input); border: 1px dashed var(--border-strong); border-radius: 12px; padding: 12px">
+                <label class="form-label" style="color: var(--gold)">📤 رفع واستعادة نسخة JSON (إعدادات / حسابات / معارض — قديمة أو حديثة):</label>
+                <input type="file" id="prepRestoreJsonInput" accept=".json,application/json" class="form-control" onchange="importPrepBackupJSON(event)" />
+                <div id="prepRestoreStatus" style="margin-top: 8px; font-size: 0.8rem; font-weight: 800; color: var(--primary-bright)"></div>
               </div>
             </div>
           </div>
@@ -1561,6 +1604,30 @@
       }
 
       // ==================== 1. PER-EXHIBITION SALES POWER ORDERING ====================
+      function getVisibleExhibitionIds() {
+        return state.exhibitions.filter((e) => !e.hide_in_sales).map((e) => e.id);
+      }
+
+      function isAssignedToAnotherVisibleExh(acc, currentExhId) {
+        if (!acc || acc.role === "developer") return false;
+        const visIds = new Set(getVisibleExhibitionIds());
+        const accExhs = Array.isArray(acc.active_exhibition_ids) ? acc.active_exhibition_ids : [];
+        return accExhs.some((id) => id !== currentExhId && visIds.has(id));
+      }
+
+      function buildExclusiveExhIds(acc, targetExhId, enable) {
+        const curr = Array.isArray(acc.active_exhibition_ids) ? [...acc.active_exhibition_ids] : [];
+        if (acc.role === "developer") {
+          return enable
+            ? curr.includes(targetExhId) ? curr : [...curr, targetExhId]
+            : curr.filter((id) => id !== targetExhId);
+        }
+        const visIds = new Set(getVisibleExhibitionIds());
+        // Strip all other visible exhibitions so a person can only be in ONE visible exhibition at a time
+        const cleaned = curr.filter((id) => !visIds.has(id) && id !== targetExhId);
+        return enable ? [...cleaned, targetExhId] : cleaned;
+      }
+
       function isTableSalesEligible(acc, teamName) {
         if (!acc || acc.role === "manager" || acc.role === "developer") return false;
         const isSalesOrBroker = accountHasRole(acc, "sales") || accountHasRole(acc, "broker");
@@ -1578,7 +1645,11 @@
           ? allEligible.filter((a) => Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exhId))
           : allEligible;
         const inactiveInExh = exhId
-          ? allEligible.filter((a) => !Array.isArray(a.active_exhibition_ids) || !a.active_exhibition_ids.includes(exhId))
+          ? allEligible.filter(
+              (a) =>
+                (!Array.isArray(a.active_exhibition_ids) || !a.active_exhibition_ids.includes(exhId)) &&
+                !isAssignedToAnotherVisibleExh(a, exhId)
+            )
           : [];
 
         const exhKey = getExhTeamOrderKey(exhId, teamName);
@@ -1663,7 +1734,7 @@
         if (!exh || !acc) return;
         const curr = Array.isArray(acc.active_exhibition_ids) ? [...acc.active_exhibition_ids] : [];
         const has = curr.includes(exh.id);
-        const next = has ? curr.filter((id) => id !== exh.id) : [...curr, exh.id];
+        const next = buildExclusiveExhIds(acc, exh.id, !has);
         acc.active_exhibition_ids = next;
         renderSalesPowerSection();
         const stEl = document.getElementById("powerSaveStatus");
@@ -1734,6 +1805,8 @@
 
         const filtered = state.accounts.filter((a) => {
           if (a.role === "manager") return false;
+          const isInThis = Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id);
+          if (!isInThis && isAssignedToAnotherVisibleExh(a, exh.id)) return false;
           if (rFilt !== "ALL" && a.role !== rFilt && !accountHasRole(a, rFilt)) return false;
           if (q && !`${a.name} ${a.code} ${a.team || ""}`.toLowerCase().includes(q)) return false;
           return true;
@@ -1775,7 +1848,7 @@
         if (!exh || !acc) return;
         const curr = Array.isArray(acc.active_exhibition_ids) ? [...acc.active_exhibition_ids] : [];
         const has = curr.includes(exh.id);
-        const next = has ? curr.filter((id) => id !== exh.id) : [...curr, exh.id];
+        const next = buildExclusiveExhIds(acc, exh.id, !has);
         acc.active_exhibition_ids = next;
         renderStaffRosterSection();
         const stEl = document.getElementById("rosterSaveStatus");
@@ -1795,15 +1868,20 @@
         const exh = getActiveExh();
         const wrap = document.getElementById("teamDistList");
         if (!exh) return;
-        const dist = exh.team_distribution && typeof exh.team_distribution === "object" ? exh.team_distribution : {};
+        const savedDist = exh.layout_config?.teamDistribution || {};
         wrap.innerHTML = state.teamsList
           .map((t, i) => {
-            const val = Number(dist[t] ?? 0);
+            const cfg = savedDist[t] || { active: true, weight: 1 };
+            const isAct = cfg.active !== false;
+            const val = Number(cfg.weight ?? 1);
             return `
             <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; padding:8px 10px; background:var(--bg-input); border:1px solid var(--border); border-radius:10px; margin-bottom:7px;">
-              <strong>🏷️ ${escapeHtml(t)}</strong>
+              <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:800;">
+                <input type="checkbox" id="distActive_${i}" style="width:17px; height:17px;" ${isAct ? "checked" : ""} />
+                <span>🏷️ ${escapeHtml(t)}</span>
+              </label>
               <div style="display:flex; align-items:center; gap:6px;">
-                <span style="font-size:0.75rem; color:var(--text-muted);">الوزن:</span>
+                <span style="font-size:0.75rem; color:var(--text-muted);">النسبة:</span>
                 <input type="number" min="0" max="20" id="distWeight_${i}" class="form-control" style="width:74px; text-align:center;" value="${val}" />
               </div>
             </div>`;
@@ -1816,13 +1894,16 @@
         if (!exh) return;
         const nextDist = {};
         state.teamsList.forEach((t, i) => {
-          nextDist[t] = Math.max(0, Number(document.getElementById(`distWeight_${i}`)?.value || 0));
+          const active = document.getElementById(`distActive_${i}`)?.checked !== false;
+          const weight = Math.max(0, Number(document.getElementById(`distWeight_${i}`)?.value || 0));
+          nextDist[t] = { active, weight };
         });
+        const updatedLayout = { ...(exh.layout_config || {}), teamDistribution: nextDist };
         try {
-          const { error } = await sb.from("exhibitions").update({ team_distribution: nextDist }).eq("id", exh.id);
+          const { error } = await sb.from("exhibitions").update({ layout_config: updatedLayout }).eq("id", exh.id);
           if (error) throw error;
-          exh.team_distribution = nextDist;
-          alert("✅ تم حفظ نسب التوزيع لهذا المعرض!");
+          exh.layout_config = updatedLayout;
+          alert(`✅ تم حفظ نسب التوزيع لمعرض (${exh.name}) وتفعيلها فوراً!`);
         } catch (err) {
           console.error(err);
           alert("❌ تعذر الحفظ: " + (err.message || ""));
@@ -2194,21 +2275,73 @@
       // ==================== 7. REPORT SETTINGS ====================
       function renderReportSettingsSection() {
         const c = state.journeyReportConfig || DEFAULT_REPORT_CONFIG;
-        document.getElementById("repHotlineInput").value = c.hotline || "";
-        document.getElementById("repSubtitleInput").value = c.subtitle || "";
+        document.getElementById("repTitleInput").value = c.title || "تقرير رحلتك الاستثمارية — B.almetr VIP";
+        document.getElementById("repSubtitleInput").value = c.subtitle || "شريكك العقاري الموثوق";
+        document.getElementById("repHeaderMsgInput").value = c.headerMessage || "";
+        document.getElementById("repFooterMsgInput").value = c.footerMessage || "";
+        document.getElementById("repHotlineInput").value = c.hotline || "19000";
+        document.getElementById("repWhatsappInput").value = c.whatsapp || "";
+        document.getElementById("repWebsiteInput").value = c.website || "";
         document.getElementById("repShowOfferChk").checked = c.showOfferDetails !== false;
         document.getElementById("repShowNotesChk").checked = c.showNotes !== false;
         document.getElementById("repShowPhoneChk").checked = c.showRepPhone !== false;
+        document.getElementById("repShowClientPhoneChk").checked = c.showClientPhone !== false;
+        document.getElementById("repShowDateChk").checked = c.showDate !== false;
+        updateReportLivePreview();
+      }
+
+      function getCurrentReportDraft() {
+        return {
+          title: (document.getElementById("repTitleInput")?.value || "").trim() || "تقرير رحلتك الاستثمارية — B.almetr VIP",
+          subtitle: (document.getElementById("repSubtitleInput")?.value || "").trim(),
+          headerMessage: (document.getElementById("repHeaderMsgInput")?.value || "").trim(),
+          footerMessage: (document.getElementById("repFooterMsgInput")?.value || "").trim(),
+          hotline: (document.getElementById("repHotlineInput")?.value || "").trim(),
+          whatsapp: (document.getElementById("repWhatsappInput")?.value || "").trim(),
+          website: (document.getElementById("repWebsiteInput")?.value || "").trim(),
+          showOfferDetails: document.getElementById("repShowOfferChk")?.checked !== false,
+          showNotes: document.getElementById("repShowNotesChk")?.checked !== false,
+          showRepPhone: document.getElementById("repShowPhoneChk")?.checked !== false,
+          showClientPhone: document.getElementById("repShowClientPhoneChk")?.checked !== false,
+          showDate: document.getElementById("repShowDateChk")?.checked !== false,
+        };
+      }
+
+      function updateReportLivePreview() {
+        const box = document.getElementById("repLivePreviewBox");
+        if (!box) return;
+        const c = getCurrentReportDraft();
+        box.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0d9488; padding-bottom:10px; margin-bottom:12px;">
+            <div>
+              <div style="font-size:15px; font-weight:900; color:#051224;">${escapeHtml(c.title)}</div>
+              ${c.subtitle ? `<div style="font-size:11px; color:#475569; font-weight:700;">${escapeHtml(c.subtitle)}</div>` : ""}
+            </div>
+            <div style="text-align:left; font-size:11px; color:#0f766e; font-weight:800;">
+              <div>كود العميل: #7055</div>
+              ${c.showDate ? `<div>${new Date().toLocaleDateString("ar-EG")}</div>` : ""}
+            </div>
+          </div>
+          ${c.headerMessage ? `<div style="background:#f0fdfa; border-right:3px solid #14b8a6; padding:8px 10px; border-radius:6px; font-size:11px; margin-bottom:10px; color:#134e4a;">${escapeHtml(c.headerMessage)}</div>` : ""}
+          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:9px 11px; margin-bottom:10px; font-size:12px;">
+            <strong>👤 العميل:</strong> أحمد محمد علي ${c.showClientPhone ? `<span dir="ltr" style="color:#475569; margin-right:8px;">(01012345678)</span>` : ""}
+            <div style="font-size:11px; color:#475569; margin-top:3px;">📍 التجمع الخامس • تجاري • الجمعية العقارية</div>
+          </div>
+          <div style="border:1px solid #99f6e4; border-radius:8px; padding:10px; margin-bottom:10px; background:#ffffff;">
+            <div style="font-weight:900; font-size:12px; color:#0f766e;">1. 💼 تيم الجمعية — آية نشات (S14)</div>
+            ${c.showOfferDetails ? `<div style="background:#fffbeb; border:1px solid #fde68a; padding:6px 8px; border-radius:6px; margin-top:5px; font-size:11px;">🎁 <strong>العرض المرشح:</strong> فندق بيرلا — 1 متر — 250K — مقدم 125K</div>` : ""}
+            ${c.showNotes ? `<div style="font-size:11px; color:#475569; margin-top:4px;">📝 ملاحظات: العميل مهتم ومستعد للحجز هذا الأسبوع.</div>` : ""}
+            ${c.showRepPhone ? `<div style="display:inline-block; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:800; margin-top:5px;">📱 تواصل المستشار: 01000000000</div>` : ""}
+          </div>
+          ${c.footerMessage ? `<div style="text-align:center; font-size:11px; color:#334155; padding:6px; border-top:1px dashed #cbd5e1; margin-top:6px;">${escapeHtml(c.footerMessage)}</div>` : ""}
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; background:#051224; color:#ffffff; padding:8px 12px; border-radius:8px; margin-top:8px; font-size:11px; font-weight:800;">
+            <span>B.almetr VIP</span>
+            <span dir="ltr">${[c.hotline ? `📞 ${c.hotline}` : "", c.whatsapp ? `💬 ${c.whatsapp}` : "", c.website ? `🌐 ${c.website}` : ""].filter(Boolean).join("  |  ")}</span>
+          </div>`;
       }
 
       async function saveReportSettings() {
-        const cfg = {
-          hotline: (document.getElementById("repHotlineInput").value || "").trim(),
-          subtitle: (document.getElementById("repSubtitleInput").value || "").trim(),
-          showOfferDetails: document.getElementById("repShowOfferChk").checked,
-          showNotes: document.getElementById("repShowNotesChk").checked,
-          showRepPhone: document.getElementById("repShowPhoneChk").checked,
-        };
+        const cfg = getCurrentReportDraft();
         state.journeyReportConfig = cfg;
         const stEl = document.getElementById("repSaveStatus");
         stEl.textContent = "⏳ جاري الحفظ...";
@@ -2218,7 +2351,7 @@
             value: JSON.stringify(cfg),
           });
           if (error) throw error;
-          stEl.textContent = "✅ تم الحفظ بنجاح";
+          stEl.textContent = "✅ تم حفظ وتطبيق التقرير بنجاح";
         } catch (err) {
           stEl.textContent = "❌ تعذر الحفظ";
         }
@@ -2263,6 +2396,7 @@
                   </div>
                 </div>
                 <div class="chips-grid">
+                  <button type="button" class="chip-btn ${a.can_edit_request ? "selected" : ""}" style="border-color:rgba(245,176,65,0.55);" onclick="toggleAccountCanEditReq('${a.id}')">${a.can_edit_request ? "✅" : "➕"} ✏️ تعديل ريكويست العميل (يوم المعرض)</button>
                   ${DELEGATABLE_SECTIONS.map((s) => {
                     const on = pSet.has(s.id);
                     return `<button type="button" class="chip-btn ${on ? "selected" : ""}" onclick="toggleAccessPerm('${a.id}', '${s.id}')">${on ? "✅" : "➕"} ${s.label}</button>`;
@@ -2347,6 +2481,73 @@
         await sb.from("system_settings").upsert({ key: "developer_signup_pass", value: val });
         state.developerSignupPass = val;
         alert("✅ تم حفظ كلمة سر تسجيل المطورين!");
+      }
+
+
+      async function toggleAccountCanEditReq(accId) {
+        const acc = state.accounts.find((a) => a.id === accId);
+        if (!acc) return;
+        const nextVal = !Boolean(acc.can_edit_request);
+        acc.can_edit_request = nextVal;
+        renderAccessControlSection();
+        const stEl = document.getElementById("accessSaveStatus");
+        stEl.textContent = "⏳ جاري الحفظ...";
+        try {
+          const { error } = await sb.from("accounts").update({ can_edit_request: nextVal }).eq("id", accId);
+          if (error) throw error;
+          stEl.textContent = "✅ تم تحديث صلاحية تعديل الريكويست";
+        } catch (err) {
+          stEl.textContent = "❌ تعذر الحفظ";
+        }
+      }
+
+      async function importPrepBackupJSON(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const stEl = document.getElementById("prepRestoreStatus");
+        stEl.textContent = "⏳ جاري قراءة ودمج النسخة...";
+        try {
+          const parsed = JSON.parse(await file.text());
+          const s = parsed.system_settings || {};
+          if (Array.isArray(s.teams_list) && s.teams_list.length > 0) {
+            await sb.from("system_settings").upsert({ key: "teams_list", value: JSON.stringify(s.teams_list) });
+          }
+          if (s.team_sales_order && typeof s.team_sales_order === "object") {
+            await sb.from("system_settings").upsert({ key: "team_sales_order", value: JSON.stringify(s.team_sales_order) });
+          }
+          if (s.user_permissions && typeof s.user_permissions === "object") {
+            await sb.from("system_settings").upsert({ key: "user_permissions", value: JSON.stringify(s.user_permissions) });
+          }
+          if (s.journey_report_config && typeof s.journey_report_config === "object") {
+            await sb.from("system_settings").upsert({ key: "journey_report_config", value: JSON.stringify(s.journey_report_config) });
+          }
+
+          let addedAccs = 0;
+          const accsToImport = Array.isArray(parsed.accounts) ? parsed.accounts : Array.isArray(parsed.salesTeam) ? parsed.salesTeam : [];
+          for (const oa of accsToImport) {
+            const codeUp = String(oa.code || "").trim().toUpperCase();
+            if (!codeUp) continue;
+            const exists = state.accounts.some((a) => a.id === oa.id || String(a.code || "").toUpperCase() === codeUp);
+            if (exists) continue;
+            const { error } = await sb.from("accounts").insert({
+              role: oa.role || "sales",
+              name: oa.name || codeUp,
+              code: codeUp,
+              password: oa.password || genRandomPass(codeUp),
+              team: oa.team || state.teamsList[0],
+              hide_in_sitting: Boolean(oa.hide_in_sitting || oa.hideInSitting),
+            });
+            if (!error) addedAccs++;
+          }
+
+          await loadAllPrepData(false);
+          stEl.textContent = `✅ تم استعادة الإعدادات ودمج ${addedAccs} حساب جديد بدون تكرار!`;
+          event.target.value = "";
+        } catch (err) {
+          console.error(err);
+          stEl.textContent = "❌ ملف JSON غير صالح: " + (err.message || "");
+          event.target.value = "";
+        }
       }
 
       function downloadPrepBackupJSON() {
