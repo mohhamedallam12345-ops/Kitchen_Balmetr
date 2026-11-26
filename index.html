@@ -85,8 +85,8 @@
         .hover-sidebar:hover {
           width: var(--sidebar-expanded);
         }
-        body.sidebar-active .main-shell {
-          margin-right: var(--sidebar-collapsed);
+        body.sidebar-active {
+          padding-right: calc(var(--sidebar-collapsed) + 8px);
         }
       }
 
@@ -141,20 +141,24 @@
         gap: 4px;
       }
       .sidebar-group-title {
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         font-weight: 900;
+        line-height: 1.6;
         color: var(--gold);
-        padding: 8px 10px 3px;
+        padding: 0 12px;
+        margin-top: 0;
         white-space: nowrap;
         opacity: 0;
-        height: 0;
+        max-height: 0;
         overflow: hidden;
-        transition: opacity 0.18s ease, height 0.18s ease;
+        transition: opacity 0.18s ease, max-height 0.18s ease, padding 0.18s ease, margin 0.18s ease;
       }
       .hover-sidebar:hover .sidebar-group-title,
       .hover-sidebar.mobile-open .sidebar-group-title {
-        opacity: 0.9;
-        height: auto;
+        opacity: 0.95;
+        max-height: 34px;
+        padding: 8px 12px 4px;
+        margin-top: 6px;
       }
 
       .side-item {
@@ -162,6 +166,8 @@
         align-items: center;
         gap: 12px;
         width: 100%;
+        min-height: 44px;
+        line-height: 1.45;
         padding: 10px 12px;
         border: 1px solid transparent;
         border-radius: 12px;
@@ -215,10 +221,11 @@
         position: relative;
         z-index: 1;
         min-height: 100vh;
-        padding: 14px 16px 36px;
-        max-width: 1280px;
+        width: 100%;
+        max-width: 1320px;
         margin: 0 auto;
-        transition: margin-right 0.24s ease;
+        padding: 18px 20px 44px;
+        transition: padding 0.24s ease;
       }
 
       .top-header {
@@ -741,31 +748,36 @@
         <!-- Missing Offers Global Alert -->
         <div id="globalMissingOffersAlert" class="alert-banner-red" style="display: none"></div>
 
-        <!-- SECTION 1: SALES POWER ORDERING -->
+        <!-- SECTION 1: PER-EXHIBITION SALES POWER ORDERING -->
         <section id="secSalesPower" class="prep-section active">
           <div class="card">
             <div class="card-header">
-              <div class="card-title">⚡ ترتيب قوة السيلز (من الأقوى للأضعف)</div>
+              <div class="card-title">⚡ ترتيب قوة السيلز لـ (<span class="active-exh-lbl">-</span>)</div>
               <span id="powerSaveStatus" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-bright)"></span>
             </div>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px">
-              اختر التيم ورتّب السيلز من الأقوى (#1) للأضعف — الترتيب بيتحفظ تلقائياً وبيشتغل فوراً في التوزيع التلقائي يوم المعرض.
+              كل معرض ليه ترتيبه الخاص بيه لوحده — بيظهرلك هنا بس السيلز <strong>النازلين على الترابيزة في المعرض ده</strong> (مفيش أشرز ولا ريسبشن)، وتقدر تفعّل أو تشيل أي سيلز من المعرض ده مباشرة من تحت.
             </p>
             <div id="powerTeamPills" class="chips-grid" style="margin-bottom: 14px"></div>
             <div class="table-responsive">
-              <table style="min-width: 520px">
+              <table style="min-width: 500px">
                 <thead>
                   <tr>
-                    <th>الترتيب</th>
+                    <th>الترتيب في المعرض</th>
                     <th>الكود</th>
                     <th>اسم السيلز</th>
-                    <th>الدور</th>
-                    <th>حالة الترابيزة (المعرض النشط)</th>
-                    <th>تحكم بالترتيب</th>
+                    <th>إزالة من الترابيزة</th>
+                    <th>تحكم بالترتيب (الأقوى #1)</th>
                   </tr>
                 </thead>
                 <tbody id="powerSalesTbody"></tbody>
               </table>
+            </div>
+            <div id="powerInactiveWrap" style="margin-top: 14px; background: var(--bg-input); border: 1px dashed var(--border); border-radius: 12px; padding: 12px">
+              <div style="font-size: 0.8rem; font-weight: 900; color: var(--gold); margin-bottom: 8px">
+                ➕ باقي سيلز التيم (غير مفعلين في <span class="active-exh-lbl">-</span> — اضغط لتفعيله على الترابيزة):
+              </div>
+              <div id="powerInactiveChips" class="chips-grid"></div>
             </div>
           </div>
         </section>
@@ -1548,69 +1560,122 @@
         else if (s === "secDevOnly") renderDevOnlySection();
       }
 
-      // ==================== 1. SALES POWER ORDERING (SAFE INDEX — FIXES Manege's!) ====================
-      function getTeamMembersForPower(teamName) {
-        const list = state.accounts.filter((a) => {
-          if (a.role === "manager" || a.role === "developer") return false;
-          return (a.team || "المعرض") === teamName;
-        });
-        const savedOrder = Array.isArray(state.teamSalesOrder?.[teamName])
+      // ==================== 1. PER-EXHIBITION SALES POWER ORDERING ====================
+      function isTableSalesEligible(acc, teamName) {
+        if (!acc || acc.role === "manager" || acc.role === "developer") return false;
+        const isSalesOrBroker = accountHasRole(acc, "sales") || accountHasRole(acc, "broker");
+        if (!isSalesOrBroker) return false;
+        return (acc.team || "المعرض") === teamName;
+      }
+
+      function getExhTeamOrderKey(exhId, teamName) {
+        return exhId ? `${exhId}::${teamName}` : teamName;
+      }
+
+      function getTeamMembersForExhPower(exhId, teamName) {
+        const allEligible = state.accounts.filter((a) => isTableSalesEligible(a, teamName));
+        const activeInExh = exhId
+          ? allEligible.filter((a) => Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exhId))
+          : allEligible;
+        const inactiveInExh = exhId
+          ? allEligible.filter((a) => !Array.isArray(a.active_exhibition_ids) || !a.active_exhibition_ids.includes(exhId))
+          : [];
+
+        const exhKey = getExhTeamOrderKey(exhId, teamName);
+        const savedOrder = Array.isArray(state.teamSalesOrder?.[exhKey])
+          ? state.teamSalesOrder[exhKey]
+          : Array.isArray(state.teamSalesOrder?.[teamName])
           ? state.teamSalesOrder[teamName]
           : [];
         const idxMap = new Map(savedOrder.map((id, i) => [id, i]));
-        return [...list].sort((a, b) => {
+
+        const sortedActive = [...activeInExh].sort((a, b) => {
           const ia = idxMap.has(a.id) ? idxMap.get(a.id) : 9999;
           const ib = idxMap.has(b.id) ? idxMap.get(b.id) : 9999;
           if (ia !== ib) return ia - ib;
           return String(a.code || "").localeCompare(String(b.code || ""));
         });
+        return { active: sortedActive, inactive: inactiveInExh };
       }
 
       function renderSalesPowerSection() {
+        const exh = getActiveExh();
         const teams = state.teamsList.length > 0 ? state.teamsList : ["المعرض"];
         if (state.activePowerTeamIdx >= teams.length || state.activePowerTeamIdx < 0) {
           state.activePowerTeamIdx = 0;
         }
         const activeTeam = teams[state.activePowerTeamIdx];
-        const activeExh = getActiveExh();
 
         const pillsEl = document.getElementById("powerTeamPills");
         pillsEl.innerHTML = teams
           .map((t, i) => {
-            const cnt = getTeamMembersForPower(t).length;
-            return `<button type="button" class="btn ${i === state.activePowerTeamIdx ? "btn-primary" : "btn-outline"} btn-sm" onclick="selectPowerTeamIdx(${i})">🏷️ ${escapeHtml(t)} <span class="badge">${cnt}</span></button>`;
+            const { active, inactive } = getTeamMembersForExhPower(exh?.id, t);
+            return `<button type="button" class="btn ${i === state.activePowerTeamIdx ? "btn-primary" : "btn-outline"} btn-sm" onclick="selectPowerTeamIdx(${i})">🏷️ ${escapeHtml(t)} <span class="badge">${active.length}/${active.length + inactive.length}</span></button>`;
           })
           .join("");
 
-        const members = getTeamMembersForPower(activeTeam);
+        const { active, inactive } = getTeamMembersForExhPower(exh?.id, activeTeam);
         const tbody = document.getElementById("powerSalesTbody");
-        if (members.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding:18px; color:var(--text-muted);">لا يوجد أعضاء مسجلين في تيم (${escapeHtml(activeTeam)}) بعد.</td></tr>`;
+        if (!exh) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">اختر معرضاً من الشريط العلوي أولاً.</td></tr>`;
           return;
         }
 
-        tbody.innerHTML = members
-          .map((s, idx) => {
-            const exhIds = Array.isArray(s.active_exhibition_ids) ? s.active_exhibition_ids : [];
-            const onTable = activeExh && exhIds.includes(activeExh.id);
-            return `
-            <tr>
-              <td>
-                <strong style="color:${idx === 0 ? "#fcd34d" : "#2dd4bf"};">#${idx + 1}</strong>
-                ${idx === 0 ? `<span class="badge badge-gold" style="margin-right:4px;">الأقوى ⭐</span>` : ""}
-              </td>
-              <td><span class="badge badge-mint">${escapeHtml(s.code)}</span></td>
-              <td style="font-weight:800;">${escapeHtml(s.name)}</td>
-              <td><span class="badge">${escapeHtml(getRoleLabel(s.role))}</span></td>
-              <td>${onTable ? `<span class="badge badge-success">✅ على الترابيزة</span>` : `<span style="color:var(--text-muted); font-size:0.76rem;">غير مفعل</span>`}</td>
-              <td style="white-space:nowrap;">
-                <button type="button" class="btn btn-gold btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 'TOP')" title="نقل للأول">⏫</button>
-                <button type="button" class="btn btn-outline btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', -1)" title="رفع">⬆️</button>
-                <button type="button" class="btn btn-outline btn-sm" ${idx === members.length - 1 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 1)" title="إنزال">⬇️</button>
-              </td>
-            </tr>`;
-          })
-          .join("");
+        if (active.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">لا يوجد سيلز مفعلين على ترابيزة (${escapeHtml(exh.name)}) في تيم (${escapeHtml(activeTeam)}) بعد — فعّلهم بضغطة من القائمة بالأسفل.</td></tr>`;
+        } else {
+          tbody.innerHTML = active
+            .map((s, idx) => `
+              <tr>
+                <td>
+                  <strong style="color:${idx === 0 ? "#fcd34d" : "#2dd4bf"};">#${idx + 1}</strong>
+                  ${idx === 0 ? `<span class="badge badge-gold" style="margin-right:4px;">الأقوى ⭐</span>` : ""}
+                </td>
+                <td><span class="badge badge-mint">${escapeHtml(s.code)}</span></td>
+                <td style="font-weight:800;">${escapeHtml(s.name)}</td>
+                <td>
+                  <button type="button" class="btn btn-danger btn-sm" onclick="toggleSalesOnExhFromPower('${s.id}')">✕ إزالة من المعرض</button>
+                </td>
+                <td style="white-space:nowrap;">
+                  <button type="button" class="btn btn-gold btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 'TOP')" title="نقل للأول">⏫</button>
+                  <button type="button" class="btn btn-outline btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', -1)" title="رفع">⬆️</button>
+                  <button type="button" class="btn btn-outline btn-sm" ${idx === active.length - 1 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 1)" title="إنزال">⬇️</button>
+                </td>
+              </tr>`)
+            .join("");
+        }
+
+        const inactWrap = document.getElementById("powerInactiveChips");
+        if (inactWrap) {
+          inactWrap.innerHTML =
+            inactive
+              .map(
+                (s) =>
+                  `<button type="button" class="chip-btn" onclick="toggleSalesOnExhFromPower('${s.id}')">➕ ${escapeHtml(s.name)} (${escapeHtml(s.code)})</button>`
+              )
+              .join("") || `<span style="font-size:0.78rem; color:var(--success);">✅ كل سيلز التيم مفعلين بالفعل على هذا المعرض.</span>`;
+        }
+      }
+
+      async function toggleSalesOnExhFromPower(accId) {
+        const exh = getActiveExh();
+        const acc = state.accounts.find((a) => a.id === accId);
+        if (!exh || !acc) return;
+        const curr = Array.isArray(acc.active_exhibition_ids) ? [...acc.active_exhibition_ids] : [];
+        const has = curr.includes(exh.id);
+        const next = has ? curr.filter((id) => id !== exh.id) : [...curr, exh.id];
+        acc.active_exhibition_ids = next;
+        renderSalesPowerSection();
+        const stEl = document.getElementById("powerSaveStatus");
+        stEl.textContent = "⏳ جاري التحديث...";
+        try {
+          const { error } = await sb.from("accounts").update({ active_exhibition_ids: next }).eq("id", accId);
+          if (error) throw error;
+          stEl.textContent = has ? "✅ تم إزالته من المعرض" : "✅ تم تفعيله على الترابيزة";
+        } catch (err) {
+          console.error(err);
+          stEl.textContent = "❌ تعذر الحفظ";
+        }
       }
 
       function selectPowerTeamIdx(idx) {
@@ -1619,10 +1684,11 @@
       }
 
       async function movePowerOrder(teamIdx, accId, direction) {
+        const exh = getActiveExh();
         const teamName = state.teamsList[teamIdx];
-        if (!teamName) return;
-        const ordered = getTeamMembersForPower(teamName);
-        const ids = ordered.map((a) => a.id);
+        if (!exh || !teamName) return;
+        const { active } = getTeamMembersForExhPower(exh.id, teamName);
+        const ids = active.map((a) => a.id);
         const idx = ids.indexOf(accId);
         if (idx < 0) return;
 
@@ -1636,7 +1702,8 @@
           [ids[idx], ids[tIdx]] = [ids[tIdx], ids[idx]];
         }
 
-        state.teamSalesOrder = { ...(state.teamSalesOrder || {}), [teamName]: ids };
+        const exhKey = getExhTeamOrderKey(exh.id, teamName);
+        state.teamSalesOrder = { ...(state.teamSalesOrder || {}), [exhKey]: ids };
         const stEl = document.getElementById("powerSaveStatus");
         stEl.textContent = "⏳ جاري الحفظ...";
         renderSalesPowerSection();
@@ -1647,7 +1714,7 @@
             value: JSON.stringify(state.teamSalesOrder),
           });
           if (error) throw error;
-          stEl.textContent = "✅ تم الحفظ وتحديث التوزيع التلقائي";
+          stEl.textContent = `✅ تم حفظ ترتيب (${exh.name})`;
         } catch (err) {
           console.error(err);
           stEl.textContent = "❌ تعذر الحفظ";
