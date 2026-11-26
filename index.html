@@ -599,6 +599,83 @@
         cursor: pointer;
       }
 
+
+      /* Exhibition Stations Board */
+      .stations-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+        gap: 12px;
+      }
+      .station-box {
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 13px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .station-box.sales-station {
+        border-color: var(--border-strong);
+        background: linear-gradient(180deg, rgba(13, 38, 69, 0.96), rgba(9, 29, 54, 0.96));
+      }
+      .station-box-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid rgba(45, 212, 191, 0.14);
+      }
+      .station-member-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border-radius: 10px;
+        background: rgba(5, 18, 36, 0.72);
+        border: 1px solid rgba(45, 212, 191, 0.14);
+      }
+      .station-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(20, 184, 166, 0.14);
+        border: 1px solid var(--border-strong);
+        color: #f8fafc;
+        font-size: 0.78rem;
+        font-weight: 800;
+      }
+      .station-pill button {
+        background: none;
+        border: none;
+        color: #fda4af;
+        cursor: pointer;
+        font-weight: 900;
+        font-size: 0.85rem;
+        padding: 0 2px;
+      }
+      .picker-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        padding: 9px 11px;
+        border-radius: 11px;
+        background: var(--bg-input);
+        border: 1px solid var(--border);
+        margin-bottom: 7px;
+        cursor: pointer;
+        transition: border-color 0.14s ease, background 0.14s ease;
+      }
+      .picker-row:hover {
+        border-color: var(--primary-bright);
+        background: rgba(20, 184, 166, 0.14);
+      }
+
       @media (max-width: 820px) {
         .hover-sidebar {
           width: var(--sidebar-expanded);
@@ -644,11 +721,8 @@
 
       <nav class="sidebar-nav" id="sidebarNavList">
         <div class="sidebar-group-title" data-grp="prep">⚡ التحضير والتوزيع</div>
-        <button type="button" class="side-item active" data-sec="secSalesPower" onclick="switchPrepSection('secSalesPower', this)">
-          <span class="s-ic">⚡</span><span class="s-lbl">ترتيب قوة السيلز</span>
-        </button>
-        <button type="button" class="side-item" data-sec="secStaffRoster" onclick="switchPrepSection('secStaffRoster', this)">
-          <span class="s-ic">🧭</span><span class="s-lbl">توزيع طاقم المعرض</span>
+        <button type="button" class="side-item active" data-sec="secStaffRoster" onclick="switchPrepSection('secStaffRoster', this)">
+          <span class="s-ic">🗺️</span><span class="s-lbl">محطات وطاقم المعرض</span>
         </button>
         <button type="button" class="side-item" data-sec="secTeamDist" onclick="switchPrepSection('secTeamDist', this)">
           <span class="s-ic">⚖️</span><span class="s-lbl">نسب التوزيع وQR الأوفلاين</span>
@@ -748,64 +822,17 @@
         <!-- Missing Offers Global Alert -->
         <div id="globalMissingOffersAlert" class="alert-banner-red" style="display: none"></div>
 
-        <!-- SECTION 1: PER-EXHIBITION SALES POWER ORDERING -->
-        <section id="secSalesPower" class="prep-section active">
+        <!-- SECTION 1: EXHIBITION STATIONS BOARD (STAFF + POWER ORDERING PER EXHIBITION) -->
+        <section id="secStaffRoster" class="prep-section active">
           <div class="card">
             <div class="card-header">
-              <div class="card-title">⚡ ترتيب قوة السيلز لـ (<span class="active-exh-lbl">-</span>)</div>
-              <span id="powerSaveStatus" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-bright)"></span>
-            </div>
-            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px">
-              كل معرض ليه ترتيبه الخاص بيه لوحده — بيظهرلك هنا بس السيلز <strong>النازلين على الترابيزة في المعرض ده</strong> (مفيش أشرز ولا ريسبشن)، وتقدر تفعّل أو تشيل أي سيلز من المعرض ده مباشرة من تحت.
-            </p>
-            <div id="powerTeamPills" class="chips-grid" style="margin-bottom: 14px"></div>
-            <div class="table-responsive">
-              <table style="min-width: 500px">
-                <thead>
-                  <tr>
-                    <th>الترتيب في المعرض</th>
-                    <th>الكود</th>
-                    <th>اسم السيلز</th>
-                    <th>إزالة من الترابيزة</th>
-                    <th>تحكم بالترتيب (الأقوى #1)</th>
-                  </tr>
-                </thead>
-                <tbody id="powerSalesTbody"></tbody>
-              </table>
-            </div>
-            <div id="powerInactiveWrap" style="margin-top: 14px; background: var(--bg-input); border: 1px dashed var(--border); border-radius: 12px; padding: 12px">
-              <div style="font-size: 0.8rem; font-weight: 900; color: var(--gold); margin-bottom: 8px">
-                ➕ باقي سيلز التيم (غير مفعلين في <span class="active-exh-lbl">-</span> — اضغط لتفعيله على الترابيزة):
-              </div>
-              <div id="powerInactiveChips" class="chips-grid"></div>
-            </div>
-          </div>
-        </section>
-
-        <!-- SECTION 2: STAFF ROSTER FOR ACTIVE EXHIBITION -->
-        <section id="secStaffRoster" class="prep-section">
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">🧭 توزيع طاقم المعرض لـ (<span class="active-exh-lbl">-</span>)</div>
+              <div class="card-title">🗺️ لوحة محطات وطاقم (<span class="active-exh-lbl">-</span>)</div>
               <span id="rosterSaveStatus" style="font-size: 0.78rem; font-weight: 800; color: var(--primary-bright)"></span>
             </div>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px">
-              فعّل الموظفين والشركات المطورة النازلين المعرض ده — أي شخص مش متفعل هنا مش هيستلم عملاء تلقائياً وشاشته بتتقفل على معارضه فقط.
+              كل معرض ليه خريطته المستقلة — اضغط <strong>«➕ إضافة»</strong> جوه أي محطة لتسكين أي موظف فيها، ورتّب سيلز كل ترابيزة مباشرة بالأسهم (الأقوى #1).
             </p>
-            <div class="grid-2" style="margin-bottom: 12px">
-              <input type="text" id="rosterSearchInput" class="form-control" placeholder="🔍 ابحث بالاسم أو الكود أو التيم..." oninput="renderStaffRosterSection()" />
-              <select id="rosterRoleFilter" class="form-control" onchange="renderStaffRosterSection()">
-                <option value="ALL">👥 كل الأدوار</option>
-                <option value="sales">💼 سيلز بالمتر</option>
-                <option value="usher">🚶 أشرز</option>
-                <option value="reception">🛎️ ريسبشن</option>
-                <option value="broker">🏢 بروكر</option>
-                <option value="team_leader">🎖️ تيم ليدر</option>
-                <option value="exh_manager">🎯 مدير معرض</option>
-                <option value="developer">🏗️ مطورين</option>
-                <option value="dev_sales">🧑‍💼 سيلز المطورين</option>
-              </select>
-            </div>
+            <div class="kpi-grid" id="stationsKpiGrid"></div>
             <div id="staffRosterContainer"></div>
           </div>
         </section>
@@ -1292,14 +1319,36 @@
       </div>
     </div>
 
+
+    <!-- STATION STAFF PICKER MODAL -->
+    <div id="stationPickerModal" class="modal-overlay" onclick="if (event.target === this) closeStationPickerModal();">
+      <div class="modal-box">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 10px">
+          <h3 id="stationPickerTitle" style="color: var(--primary-bright); font-size: 1rem">➕ إضافة موظف للمحطة</h3>
+          <button type="button" class="btn btn-outline btn-sm" onclick="closeStationPickerModal()">✕ إغلاق</button>
+        </div>
+        <p id="stationPickerSubtitle" style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 10px">
+          اضغط على أي موظف لإضافته فوراً لهذه المحطة في المعرض النشط:
+        </p>
+        <input
+          type="text"
+          id="stationPickerSearch"
+          class="form-control"
+          style="margin-bottom: 10px"
+          placeholder="🔍 ابحث بالاسم أو الكود أو التيم..."
+          oninput="renderStationPickerList()"
+        />
+        <div id="stationPickerList" style="max-height: 55vh; overflow-y: auto"></div>
+      </div>
+    </div>
+
     <script>
       const SUPABASE_URL = "https://xdvmfjpccmzrwynpentr.supabase.co";
       const SUPABASE_KEY = "sb_publishable_1zDPrrzj5QdaILjGuXZujQ_nNpz3Se_";
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
       const DELEGATABLE_SECTIONS = [
-        { id: "secSalesPower", label: "⚡ ترتيب قوة السيلز" },
-        { id: "secStaffRoster", label: "🧭 توزيع طاقم المعرض" },
+        { id: "secStaffRoster", label: "🗺️ محطات وطاقم المعرض (والترتيب)" },
         { id: "secTeamDist", label: "⚖️ نسب التوزيع وQR الأوفلاين" },
         { id: "secBalmetrOffers", label: "🏢 عروض بالمتر" },
         { id: "secAccounts", label: "👥 الحسابات والتيمات" },
@@ -1331,7 +1380,7 @@
       const state = {
         sessionToken: null,
         currentUser: null,
-        activeSection: "secSalesPower",
+        activeSection: "secStaffRoster",
         activeExhibitionId: null,
         exhibitions: [],
         accounts: [],
@@ -1339,6 +1388,7 @@
         teamsList: ["المعرض", "الجمعية", "الوديعة", "الاستلام الفوري", "بروكر"],
         teamMetaConfig: {},
         exhRoleOverrides: {},
+        exhTeamOverrides: {},
         teamSalesOrder: {},
         userPermissions: {},
         journeyReportConfig: { ...DEFAULT_REPORT_CONFIG },
@@ -1402,6 +1452,16 @@
         return getExhRoleOverride(exhId, acc.id) || acc.role || "";
       }
 
+      function getExhTeamOverride(exhId, accId) {
+        if (!exhId || !accId) return "";
+        return state.exhTeamOverrides?.[`${exhId}::${accId}`] || "";
+      }
+
+      function getEffectiveTeamForExh(acc, exhId) {
+        if (!acc) return "";
+        return getExhTeamOverride(exhId, acc.id) || acc.team || getSalesTeamsList()[0] || "المعرض";
+      }
+
       function getRoleCategory(role) {
         if (["sales", "team_leader"].includes(role)) return "sales";
         if (["usher", "reception"].includes(role)) return "organizing";
@@ -1450,7 +1510,8 @@
         if (!Array.isArray(perms)) return [];
         // Map legacy index.html perm IDs cleanly as well
         const map = {
-          mgrTabSalesPower: "secSalesPower",
+          secSalesPower: "secStaffRoster",
+          mgrTabSalesPower: "secStaffRoster",
           mgrTabStaffDist: "secStaffRoster",
           mgrTabBalmetrOffers: "secBalmetrOffers",
           mgrTabAccounts: "secAccounts",
@@ -1561,6 +1622,11 @@
               try {
                 const p = JSON.parse(row.value);
                 if (p && typeof p === "object") state.exhRoleOverrides = p;
+              } catch (e) {}
+            } else if (row.key === "exh_team_overrides") {
+              try {
+                const p = JSON.parse(row.value);
+                if (p && typeof p === "object") state.exhTeamOverrides = p;
               } catch (e) {}
             } else if (row.key === "team_sales_order") {
               try {
@@ -1705,8 +1771,7 @@
 
       function renderActiveSection() {
         const s = state.activeSection;
-        if (s === "secSalesPower") renderSalesPowerSection();
-        else if (s === "secStaffRoster") renderStaffRosterSection();
+        if (s === "secSalesPower" || s === "secStaffRoster") renderStaffRosterSection();
         else if (s === "secTeamDist") {
           renderTeamDistSection();
           renderOfflineFlyerQR();
@@ -1718,7 +1783,7 @@
         else if (s === "secDevOnly") renderDevOnlySection();
       }
 
-      // ==================== 1. PER-EXHIBITION SALES POWER ORDERING ====================
+      // ==================== 1 & 2. EXHIBITION STATIONS BOARD (STAFF + POWER ORDER) ====================
       function getVisibleExhibitionIds() {
         return state.exhibitions.filter((e) => !e.hide_in_sales).map((e) => e.id);
       }
@@ -1738,33 +1803,37 @@
             : curr.filter((id) => id !== targetExhId);
         }
         const visIds = new Set(getVisibleExhibitionIds());
-        // Strip all other visible exhibitions so a person can only be in ONE visible exhibition at a time
         const cleaned = curr.filter((id) => !visIds.has(id) && id !== targetExhId);
         return enable ? [...cleaned, targetExhId] : cleaned;
-      }
-
-      function isTableSalesEligible(acc, teamName, exhId = null) {
-        if (!acc || acc.role === "manager" || acc.role === "developer" || acc.role === "dev_sales") return false;
-        const ovr = exhId ? getExhRoleOverride(exhId, acc.id) : "";
-        if (ovr && !["sales", "broker"].includes(ovr)) return false;
-        const isSalesOrBroker = ovr === "sales" || ovr === "broker" || accountHasRole(acc, "sales") || accountHasRole(acc, "broker");
-        if (!isSalesOrBroker) return false;
-        return (acc.team || "المعرض") === teamName;
       }
 
       function getExhTeamOrderKey(exhId, teamName) {
         return exhId ? `${exhId}::${teamName}` : teamName;
       }
 
-      function getTeamMembersForExhPower(exhId, teamName) {
-        const allEligible = state.accounts.filter((a) => isTableSalesEligible(a, teamName, exhId));
-        const activeInExh = exhId
-          ? allEligible.filter((a) => Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exhId))
-          : allEligible;
-        const inactiveInExh = exhId
-          ? allEligible.filter((a) => !Array.isArray(a.active_exhibition_ids) || !a.active_exhibition_ids.includes(exhId))
-          : [];
+      function getAccountStationInExh(acc, exhId) {
+        if (!acc || !exhId) return null;
+        const inExh = Array.isArray(acc.active_exhibition_ids) && acc.active_exhibition_ids.includes(exhId);
+        if (!inExh) return null;
+        const effRole = getEffectiveRoleForExh(acc, exhId);
+        if (effRole === "reception") return { type: "ROLE", role: "reception", label: "🛎️ الريسبشن" };
+        if (effRole === "usher") return { type: "ROLE", role: "usher", label: "🚶 الأشرز" };
+        if (effRole === "broker") return { type: "ROLE", role: "broker", label: "🏢 البروكرز" };
+        if (effRole === "exh_manager" || effRole === "team_leader") return { type: "ROLE", role: "exh_manager", label: "🎯 إدارة المعرض" };
+        if (effRole === "developer" || effRole === "dev_sales") return { type: "DEV", role: effRole, label: "🏗️ المطورين" };
+        if (effRole === "sales") {
+          const teamName = getEffectiveTeamForExh(acc, exhId);
+          return { type: "SALES_TABLE", role: "sales", team: teamName, label: `💼 ترابيزة ${teamName}` };
+        }
+        return null;
+      }
 
+      function getOrderedRepsForStationTable(exhId, teamName) {
+        const reps = state.accounts.filter((a) => {
+          if (a.role === "manager") return false;
+          const st = getAccountStationInExh(a, exhId);
+          return st && st.type === "SALES_TABLE" && st.team === teamName;
+        });
         const exhKey = getExhTeamOrderKey(exhId, teamName);
         const savedOrder = Array.isArray(state.teamSalesOrder?.[exhKey])
           ? state.teamSalesOrder[exhKey]
@@ -1772,110 +1841,325 @@
           ? state.teamSalesOrder[teamName]
           : [];
         const idxMap = new Map(savedOrder.map((id, i) => [id, i]));
-
-        const sortedActive = [...activeInExh].sort((a, b) => {
+        return [...reps].sort((a, b) => {
           const ia = idxMap.has(a.id) ? idxMap.get(a.id) : 9999;
           const ib = idxMap.has(b.id) ? idxMap.get(b.id) : 9999;
           if (ia !== ib) return ia - ib;
           return String(a.code || "").localeCompare(String(b.code || ""));
         });
-        return { active: sortedActive, inactive: inactiveInExh };
       }
 
-      function renderSalesPowerSection() {
+      let currentPickerStation = null;
+
+      function renderStaffRosterSection() {
         const exh = getActiveExh();
-        const teams = getSalesTeamsList();
-        if (state.activePowerTeamIdx >= teams.length || state.activePowerTeamIdx < 0) {
-          state.activePowerTeamIdx = 0;
-        }
-        const activeTeam = teams[state.activePowerTeamIdx];
-
-        const pillsEl = document.getElementById("powerTeamPills");
-        pillsEl.innerHTML = teams
-          .map((t, i) => {
-            const { active, inactive } = getTeamMembersForExhPower(exh?.id, t);
-            return `<button type="button" class="btn ${i === state.activePowerTeamIdx ? "btn-primary" : "btn-outline"} btn-sm" onclick="selectPowerTeamIdx(${i})">🏷️ ${escapeHtml(t)} <span class="badge">${active.length}/${active.length + inactive.length}</span></button>`;
-          })
-          .join("");
-
-        const { active, inactive } = getTeamMembersForExhPower(exh?.id, activeTeam);
-        const tbody = document.getElementById("powerSalesTbody");
-        if (!exh) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">اختر معرضاً من الشريط العلوي أولاً.</td></tr>`;
+        const wrap = document.getElementById("staffRosterContainer");
+        const kpiEl = document.getElementById("stationsKpiGrid");
+        if (!exh || !wrap) {
+          if (wrap) wrap.innerHTML = `<div style="color:var(--text-muted); padding:14px;">اختر معرضاً من الشريط العلوي أولاً.</div>`;
           return;
         }
 
-        if (active.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:18px; color:var(--text-muted);">لا يوجد سيلز مفعلين على ترابيزة (${escapeHtml(exh.name)}) في تيم (${escapeHtml(activeTeam)}) بعد — فعّلهم بضغطة من القائمة بالأسفل.</td></tr>`;
-        } else {
-          tbody.innerHTML = active
-            .map((s, idx) => `
-              <tr>
-                <td>
-                  <strong style="color:${idx === 0 ? "#fcd34d" : "#2dd4bf"};">#${idx + 1}</strong>
-                  ${idx === 0 ? `<span class="badge badge-gold" style="margin-right:4px;">الأقوى ⭐</span>` : ""}
-                </td>
-                <td><span class="badge badge-mint">${escapeHtml(s.code)}</span></td>
-                <td style="font-weight:800;">${escapeHtml(s.name)}</td>
-                <td>
-                  <button type="button" class="btn btn-danger btn-sm" onclick="toggleSalesOnExhFromPower('${s.id}')">✕ إزالة من المعرض</button>
-                </td>
-                <td style="white-space:nowrap;">
-                  <button type="button" class="btn btn-gold btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 'TOP')" title="نقل للأول">⏫</button>
-                  <button type="button" class="btn btn-outline btn-sm" ${idx === 0 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', -1)" title="رفع">⬆️</button>
-                  <button type="button" class="btn btn-outline btn-sm" ${idx === active.length - 1 ? "disabled" : ""} onclick="movePowerOrder(${state.activePowerTeamIdx}, '${s.id}', 1)" title="إنزال">⬇️</button>
-                </td>
-              </tr>`)
-            .join("");
+        const inThisExh = state.accounts.filter(
+          (a) => a.role !== "manager" && Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id)
+        );
+        const byRole = (roleName) =>
+          inThisExh.filter((a) => {
+            const st = getAccountStationInExh(a, exh.id);
+            return st && st.type === "ROLE" && st.role === roleName;
+          });
+
+        const recList = byRole("reception");
+        const usherList = byRole("usher");
+        const brokerList = byRole("broker");
+        const mgrList = byRole("exh_manager");
+        const devList = inThisExh.filter((a) => {
+          const st = getAccountStationInExh(a, exh.id);
+          return st && st.type === "DEV";
+        });
+
+        const salesTeams = getSalesTeamsList();
+        const totalTableSales = salesTeams.reduce((sum, t) => sum + getOrderedRepsForStationTable(exh.id, t).length, 0);
+
+        if (kpiEl) {
+          kpiEl.innerHTML = `
+            <div class="kpi-card"><div class="label">🛎️ ريسبشن</div><div class="val">${recList.length}</div></div>
+            <div class="kpi-card"><div class="label">🚶 أشرز</div><div class="val" style="color:#fcd34d;">${usherList.length}</div></div>
+            <div class="kpi-card"><div class="label">💼 سيلز الترابيزات</div><div class="val" style="color:#34d399;">${totalTableSales}</div></div>
+            <div class="kpi-card"><div class="label">🏢 بروكرز</div><div class="val">${brokerList.length}</div></div>
+            <div class="kpi-card"><div class="label">🏗️ مطورين وسيلزهم</div><div class="val" style="color:#2dd4bf;">${devList.length}</div></div>
+          `;
         }
 
-        const inactWrap = document.getElementById("powerInactiveChips");
-        if (inactWrap) {
-          inactWrap.innerHTML =
-            inactive
-              .map((s) => {
-                const otherExh = isAssignedToAnotherVisibleExh(s, exh.id)
-                  ? state.exhibitions.find((e) => e.id !== exh.id && !e.hide_in_sales && (s.active_exhibition_ids || []).includes(e.id))
-                  : null;
-                const tag = otherExh ? ` — 🔄 في ${escapeHtml(otherExh.name)}` : "";
-                return `<button type="button" class="chip-btn" onclick="toggleSalesOnExhFromPower('${s.id}')">➕ ${escapeHtml(s.name)} (${escapeHtml(s.code)})${tag}</button>`;
-              })
-              .join("") || `<span style="font-size:0.78rem; color:var(--success);">✅ كل سيلز التيم مفعلين بالفعل على هذا المعرض.</span>`;
+        const renderSimpleStationBox = (title, roleKey, list, emptyMsg, isDev = false) => `
+          <div class="station-box">
+            <div class="station-box-head">
+              <div>
+                <strong style="color:var(--primary-bright); font-size:0.9rem;">${title}</strong>
+                <span class="badge badge-gold" style="margin-right:6px;">${list.length}</span>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" onclick="openStationPicker('${isDev ? "DEV" : "ROLE"}', '${roleKey}', '')">➕ إضافة</button>
+            </div>
+            <div class="chips-grid">
+              ${
+                list.length === 0
+                  ? `<span style="font-size:0.77rem; color:var(--text-muted);">${emptyMsg}</span>`
+                  : list
+                      .map((a) => {
+                        const ovrTag = getExhRoleOverride(exh.id, a.id) && a.role !== roleKey
+                          ? `<small style="color:#fcd34d; font-size:0.68rem;">(أصله ${escapeHtml(getRoleLabel(a.role))})</small>`
+                          : "";
+                        return `<span class="station-pill">
+                          <span>${escapeHtml(a.name)} <small style="color:var(--primary-bright);">(${escapeHtml(a.code)})</small> ${ovrTag}</span>
+                          <button type="button" title="إزالة من المعرض" onclick="removeMemberFromExhStation('${a.id}')">✕</button>
+                        </span>`;
+                      })
+                      .join("")
+              }
+            </div>
+          </div>`;
+
+        const salesBoxesHtml = salesTeams
+          .map((teamName) => {
+            const reps = getOrderedRepsForStationTable(exh.id, teamName);
+            const safeTeamJs = escapeHtml(teamName).replace(/'/g, "\'");
+            return `
+            <div class="station-box sales-station">
+              <div class="station-box-head">
+                <div>
+                  <strong style="color:#fcd34d; font-size:0.92rem;">💼 ترابيزة: ${escapeHtml(teamName)}</strong>
+                  <span class="badge badge-success" style="margin-right:6px;">${reps.length} سيلز</span>
+                </div>
+                <button type="button" class="btn btn-gold btn-sm" onclick="openStationPicker('SALES_TABLE', 'sales', '${safeTeamJs}')">➕ إضافة سيلز</button>
+              </div>
+              ${
+                reps.length === 0
+                  ? `<div style="font-size:0.77rem; color:var(--text-muted); padding:6px 2px;">لا يوجد سيلز على ترابيزة (${escapeHtml(teamName)}) بعد — اضغط «➕ إضافة سيلز».</div>`
+                  : `<div style="display:flex; flex-direction:column; gap:6px;">
+                      ${reps
+                        .map((s, idx) => {
+                          const movedFrom = s.team && s.team !== teamName ? `<small style="color:#fcd34d; font-size:0.68rem;">(تيمه ${escapeHtml(s.team)})</small>` : "";
+                          return `
+                          <div class="station-member-row">
+                            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                              <strong style="color:${idx === 0 ? "#fcd34d" : "#2dd4bf"};">#${idx + 1}</strong>
+                              ${idx === 0 ? `<span class="badge badge-gold" style="font-size:0.66rem;">الأقوى ⭐</span>` : ""}
+                              <span class="badge badge-mint" style="font-size:0.7rem;">${escapeHtml(s.code)}</span>
+                              <strong style="font-size:0.83rem;">${escapeHtml(s.name)}</strong>
+                              ${movedFrom}
+                            </div>
+                            <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
+                              <button type="button" class="btn btn-gold btn-sm" style="padding:3px 6px;" ${idx === 0 ? "disabled" : ""} onclick="moveStationRepOrder('${safeTeamJs}', '${s.id}', 'TOP')" title="نقل للأول">⏫</button>
+                              <button type="button" class="btn btn-outline btn-sm" style="padding:3px 6px;" ${idx === 0 ? "disabled" : ""} onclick="moveStationRepOrder('${safeTeamJs}', '${s.id}', -1)" title="رفع">⬆️</button>
+                              <button type="button" class="btn btn-outline btn-sm" style="padding:3px 6px;" ${idx === reps.length - 1 ? "disabled" : ""} onclick="moveStationRepOrder('${safeTeamJs}', '${s.id}', 1)" title="إنزال">⬇️</button>
+                              <button type="button" class="btn btn-danger btn-sm" style="padding:3px 7px;" onclick="removeMemberFromExhStation('${s.id}')" title="إزالة">✕</button>
+                            </div>
+                          </div>`;
+                        })
+                        .join("")}
+                    </div>`
+              }
+            </div>`;
+          })
+          .join("");
+
+        wrap.innerHTML = `
+          <div style="font-size:0.84rem; font-weight:900; color:#fcd34d; margin-bottom:8px;">💼 ترابيزات البيع (الترتيب من الأقوى #1 للأسفل — بدون حد أقصى):</div>
+          <div class="stations-grid" style="margin-bottom:14px;">${salesBoxesHtml}</div>
+
+          <div style="font-size:0.84rem; font-weight:900; color:var(--primary-bright); margin-bottom:8px;">🧭 محطات التنظيم والبروكرز والمطورين:</div>
+          <div class="stations-grid">
+            ${renderSimpleStationBox("🛎️ الريسبشن", "reception", recList, "لم يتم تسكين ريسبشن في هذا المعرض بعد.")}
+            ${renderSimpleStationBox("🚶 الأشرز", "usher", usherList, "لم يتم تسكين أشرز في هذا المعرض بعد.")}
+            ${renderSimpleStationBox("🏢 البروكرز", "broker", brokerList, "لا يوجد بروكرز مفعلين في هذا المعرض.")}
+            ${renderSimpleStationBox("🎯 إدارة المعرض (مدير معرض / تيم ليدر)", "exh_manager", mgrList, "لا يوجد مدير معرض مفعل هنا.")}
+            ${renderSimpleStationBox("🏗️ الشركات المطورة وسيلز المطورين", "developer", devList, "لم يتم تفعيل شركات مطورة في هذا المعرض بعد.", true)}
+          </div>`;
+      }
+
+      function openStationPicker(type, roleKey, teamName) {
+        const exh = getActiveExh();
+        if (!exh) return;
+        currentPickerStation = { type, role: roleKey, team: teamName || "" };
+        const titleEl = document.getElementById("stationPickerTitle");
+        if (titleEl) {
+          titleEl.textContent =
+            type === "SALES_TABLE"
+              ? `➕ إضافة سيلز لترابيزة (${teamName}) — ${exh.name}`
+              : type === "DEV"
+              ? `➕ إضافة مطور / سيلز مطور — ${exh.name}`
+              : `➕ إضافة موظف لمحطة (${getRoleLabel(roleKey)}) — ${exh.name}`;
+        }
+        const srch = document.getElementById("stationPickerSearch");
+        if (srch) srch.value = "";
+        renderStationPickerList();
+        document.getElementById("stationPickerModal").classList.add("show");
+        setTimeout(() => srch?.focus(), 50);
+      }
+
+      function closeStationPickerModal() {
+        document.getElementById("stationPickerModal").classList.remove("show");
+        currentPickerStation = null;
+      }
+
+      function renderStationPickerList() {
+        const exh = getActiveExh();
+        const cfg = currentPickerStation;
+        const box = document.getElementById("stationPickerList");
+        if (!exh || !cfg || !box) return;
+
+        const q = (document.getElementById("stationPickerSearch")?.value || "").trim().toLowerCase();
+        const candidates = state.accounts.filter((a) => {
+          if (a.role === "manager") return false;
+          if (cfg.type === "DEV") {
+            if (a.role !== "developer" && a.role !== "dev_sales") return false;
+          } else {
+            if (a.role === "developer" || a.role === "dev_sales" || a.role === "admin_broker" || a.role === "influencer") return false;
+          }
+          // Skip people already in THIS exact station
+          const curSt = getAccountStationInExh(a, exh.id);
+          if (curSt) {
+            if (cfg.type === "SALES_TABLE" && curSt.type === "SALES_TABLE" && curSt.team === cfg.team) return false;
+            if (cfg.type === "ROLE" && curSt.type === "ROLE" && curSt.role === cfg.role) return false;
+            if (cfg.type === "DEV" && curSt.type === "DEV") return false;
+          }
+          if (q && !`${a.name} ${a.code} ${a.team || ""} ${getRoleLabel(a.role)}`.toLowerCase().includes(q)) return false;
+          return true;
+        });
+
+        // Sort: matching natural role/team first, then unassigned, then others
+        candidates.sort((a, b) => {
+          const score = (x) => {
+            let s = 0;
+            if (cfg.type === "SALES_TABLE" && x.team === cfg.team && x.role === "sales") s += 100;
+            else if (cfg.type === "ROLE" && x.role === cfg.role) s += 100;
+            if (!getAccountStationInExh(x, exh.id) && !isAssignedToAnotherVisibleExh(x, exh.id)) s += 20;
+            return s;
+          };
+          return score(b) - score(a) || String(a.code || "").localeCompare(String(b.code || ""));
+        });
+
+        if (candidates.length === 0) {
+          box.innerHTML = `<div style="text-align:center; padding:18px; color:var(--text-muted); font-size:0.82rem;">لا يوجد موظفين متاحين مطابقين للبحث.</div>`;
+          return;
+        }
+
+        box.innerHTML = candidates
+          .map((a) => {
+            const curSt = getAccountStationInExh(a, exh.id);
+            const otherExh = !curSt && isAssignedToAnotherVisibleExh(a, exh.id)
+              ? state.exhibitions.find((e) => e.id !== exh.id && !e.hide_in_sales && (a.active_exhibition_ids || []).includes(e.id))
+              : null;
+            const statusBadge = curSt
+              ? `<span class="badge badge-gold">📍 حالياً في: ${escapeHtml(curSt.label)} (نقل)</span>`
+              : otherExh
+              ? `<span class="badge badge-danger">🔄 في ${escapeHtml(otherExh.name)} (نقل)</span>`
+              : `<span class="badge badge-success">➕ إضافة</span>`;
+            return `
+            <div class="picker-row" onclick="assignMemberToStation('${a.id}')">
+              <div>
+                <span class="badge badge-mint">${escapeHtml(a.code)}</span>
+                <strong style="margin-right:6px; font-size:0.85rem;">${escapeHtml(a.name)}</strong>
+                <div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;">
+                  ${escapeHtml(getRoleLabel(a.role))}${a.team ? ` — ${escapeHtml(a.team)}` : ""}
+                </div>
+              </div>
+              ${statusBadge}
+            </div>`;
+          })
+          .join("");
+      }
+
+      async function assignMemberToStation(accId) {
+        const exh = getActiveExh();
+        const cfg = currentPickerStation;
+        const acc = state.accounts.find((a) => a.id === accId);
+        if (!exh || !cfg || !acc) return;
+
+        const nextExhIds = buildExclusiveExhIds(acc, exh.id, true);
+        acc.active_exhibition_ids = nextExhIds;
+
+        const key = `${exh.id}::${acc.id}`;
+        const nextRoleOv = { ...(state.exhRoleOverrides || {}) };
+        const nextTeamOv = { ...(state.exhTeamOverrides || {}) };
+
+        if (cfg.type === "DEV") {
+          delete nextRoleOv[key];
+          delete nextTeamOv[key];
+        } else if (cfg.type === "SALES_TABLE") {
+          if (acc.role === "sales") delete nextRoleOv[key];
+          else nextRoleOv[key] = "sales";
+          if (acc.team === cfg.team) delete nextTeamOv[key];
+          else nextTeamOv[key] = cfg.team;
+        } else {
+          if (acc.role === cfg.role || (cfg.role === "exh_manager" && acc.role === "team_leader")) delete nextRoleOv[key];
+          else nextRoleOv[key] = cfg.role;
+          delete nextTeamOv[key];
+        }
+
+        state.exhRoleOverrides = nextRoleOv;
+        state.exhTeamOverrides = nextTeamOv;
+
+        renderStaffRosterSection();
+        renderStationPickerList();
+
+        const stEl = document.getElementById("rosterSaveStatus");
+        if (stEl) stEl.textContent = "⏳ جاري الحفظ...";
+        try {
+          const ops = [
+            sb.from("accounts").update({ active_exhibition_ids: nextExhIds }).eq("id", acc.id),
+            sb.from("system_settings").upsert({ key: "exh_role_overrides", value: JSON.stringify(nextRoleOv) }),
+            sb.from("system_settings").upsert({ key: "exh_team_overrides", value: JSON.stringify(nextTeamOv) }),
+          ];
+          const results = await Promise.all(ops);
+          const err = results.find((r) => r.error)?.error;
+          if (err) throw err;
+          if (stEl) stEl.textContent = `✅ تم تسكين ${acc.name} في (${exh.name})`;
+        } catch (err) {
+          console.error(err);
+          if (stEl) stEl.textContent = "❌ تعذر الحفظ";
         }
       }
 
-      async function toggleSalesOnExhFromPower(accId) {
+      async function removeMemberFromExhStation(accId) {
         const exh = getActiveExh();
         const acc = state.accounts.find((a) => a.id === accId);
         if (!exh || !acc) return;
-        const curr = Array.isArray(acc.active_exhibition_ids) ? [...acc.active_exhibition_ids] : [];
-        const has = curr.includes(exh.id);
-        const next = buildExclusiveExhIds(acc, exh.id, !has);
-        acc.active_exhibition_ids = next;
-        renderSalesPowerSection();
-        const stEl = document.getElementById("powerSaveStatus");
-        stEl.textContent = "⏳ جاري التحديث...";
+
+        const nextExhIds = buildExclusiveExhIds(acc, exh.id, false);
+        acc.active_exhibition_ids = nextExhIds;
+
+        const key = `${exh.id}::${acc.id}`;
+        const nextRoleOv = { ...(state.exhRoleOverrides || {}) };
+        const nextTeamOv = { ...(state.exhTeamOverrides || {}) };
+        delete nextRoleOv[key];
+        delete nextTeamOv[key];
+        state.exhRoleOverrides = nextRoleOv;
+        state.exhTeamOverrides = nextTeamOv;
+
+        renderStaffRosterSection();
+        const stEl = document.getElementById("rosterSaveStatus");
+        if (stEl) stEl.textContent = "⏳ جاري التحديث...";
         try {
-          const { error } = await sb.from("accounts").update({ active_exhibition_ids: next }).eq("id", accId);
-          if (error) throw error;
-          stEl.textContent = has ? "✅ تم إزالته من المعرض" : "✅ تم تفعيله على الترابيزة";
+          const results = await Promise.all([
+            sb.from("accounts").update({ active_exhibition_ids: nextExhIds }).eq("id", acc.id),
+            sb.from("system_settings").upsert({ key: "exh_role_overrides", value: JSON.stringify(nextRoleOv) }),
+            sb.from("system_settings").upsert({ key: "exh_team_overrides", value: JSON.stringify(nextTeamOv) }),
+          ]);
+          const err = results.find((r) => r.error)?.error;
+          if (err) throw err;
+          if (stEl) stEl.textContent = `✅ تم إزالة ${acc.name} من (${exh.name})`;
         } catch (err) {
           console.error(err);
-          stEl.textContent = "❌ تعذر الحفظ";
+          if (stEl) stEl.textContent = "❌ تعذر الحفظ";
         }
       }
 
-      function selectPowerTeamIdx(idx) {
-        state.activePowerTeamIdx = idx;
-        renderSalesPowerSection();
-      }
-
-      async function movePowerOrder(teamIdx, accId, direction) {
+      async function moveStationRepOrder(teamName, accId, direction) {
         const exh = getActiveExh();
-        const teamName = getSalesTeamsList()[teamIdx];
         if (!exh || !teamName) return;
-        const { active } = getTeamMembersForExhPower(exh.id, teamName);
-        const ids = active.map((a) => a.id);
+        const ordered = getOrderedRepsForStationTable(exh.id, teamName);
+        const ids = ordered.map((a) => a.id);
         const idx = ids.indexOf(accId);
         if (idx < 0) return;
 
@@ -1891,138 +2175,19 @@
 
         const exhKey = getExhTeamOrderKey(exh.id, teamName);
         state.teamSalesOrder = { ...(state.teamSalesOrder || {}), [exhKey]: ids };
-        const stEl = document.getElementById("powerSaveStatus");
-        stEl.textContent = "⏳ جاري الحفظ...";
-        renderSalesPowerSection();
-
+        renderStaffRosterSection();
+        const stEl = document.getElementById("rosterSaveStatus");
+        if (stEl) stEl.textContent = "⏳ جاري حفظ الترتيب...";
         try {
           const { error } = await sb.from("system_settings").upsert({
             key: "team_sales_order",
             value: JSON.stringify(state.teamSalesOrder),
           });
           if (error) throw error;
-          stEl.textContent = `✅ تم حفظ ترتيب (${exh.name})`;
-        } catch (err) {
-          console.error(err);
-          stEl.textContent = "❌ تعذر الحفظ";
-        }
-      }
-
-      // ==================== 2. STAFF ROSTER (5 CATEGORIES + PER-EXHIBITION DUTY OVERRIDE) ====================
-      function renderStaffRosterSection() {
-        const exh = getActiveExh();
-        const wrap = document.getElementById("staffRosterContainer");
-        if (!exh) {
-          wrap.innerHTML = `<div style="color:var(--text-muted); padding:14px;">اختر معرضاً أولاً.</div>`;
-          return;
-        }
-        const q = (document.getElementById("rosterSearchInput")?.value || "").trim().toLowerCase();
-        const rFilt = document.getElementById("rosterRoleFilter")?.value || "ALL";
-
-        const filtered = state.accounts.filter((a) => {
-          if (a.role === "manager") return false;
-          const effRole = getEffectiveRoleForExh(a, exh.id);
-          if (rFilt !== "ALL" && a.role !== rFilt && effRole !== rFilt && !accountHasRole(a, rFilt)) return false;
-          if (q && !`${a.name} ${a.code} ${a.team || ""} ${getRoleLabel(a.role)}`.toLowerCase().includes(q)) return false;
-          return true;
-        });
-
-        const groups = {};
-        filtered.forEach((a) => {
-          const cat = getRoleCategory(a.role);
-          let g = "👑 الإدارة ومديري المعارض";
-          if (cat === "sales") {
-            g = a.team && isSalesTeamName(a.team) ? `💼 سيلز بالمتر — تيم: ${a.team}` : "💼 سيلز بالمتر (عام)";
-          } else if (cat === "organizing") {
-            g = "🚶 تنظيم المعرض (أشرز وريسبشن)";
-          } else if (cat === "broker") {
-            g = "🏢 بروكرز وتسويق";
-          } else if (cat === "developer") {
-            g = "🏗️ الشركات المطورة وسيلز المطورين";
-          }
-          if (!groups[g]) groups[g] = [];
-          groups[g].push(a);
-        });
-
-        wrap.innerHTML =
-          Object.entries(groups)
-            .map(([gName, list]) => {
-              const activeCnt = list.filter((a) => Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id)).length;
-              return `
-              <div style="background:var(--bg-input); border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-                  <strong style="color:var(--primary-bright); font-size:0.85rem;">${escapeHtml(gName)}</strong>
-                  <span class="badge badge-gold">مفعل: ${activeCnt} / ${list.length}</span>
-                </div>
-                <div class="chips-grid" style="align-items:center;">
-                  ${list
-                    .map((a) => {
-                      const on = Array.isArray(a.active_exhibition_ids) && a.active_exhibition_ids.includes(exh.id);
-                      const ovr = getExhRoleOverride(exh.id, a.id);
-                      const otherExh = !on && isAssignedToAnotherVisibleExh(a, exh.id)
-                        ? state.exhibitions.find((e) => e.id !== exh.id && !e.hide_in_sales && (a.active_exhibition_ids || []).includes(e.id))
-                        : null;
-                      const showDutyPicker = on && !["developer", "dev_sales", "admin_broker", "influencer"].includes(a.role);
-                      return `<div style="display:inline-flex; align-items:center; gap:5px; flex-wrap:wrap; background:${on ? "rgba(20,184,166,0.12)" : "transparent"}; border:${on ? "1px solid var(--border-strong)" : "none"}; border-radius:999px; padding:${on ? "3px 6px" : "0"};">
-                        <button type="button" class="chip-btn ${on ? "selected" : ""}" style="${on ? "border:none; background:transparent; padding:4px 7px;" : ""}" onclick="toggleRosterMember('${a.id}')">${on ? "✅" : "➕"} ${escapeHtml(a.name)} (${escapeHtml(a.code)})${otherExh ? ` — 🔄 ${escapeHtml(otherExh.name)}` : ""}</button>
-                        ${showDutyPicker ? `<select onchange="setExhRoleOverride('${a.id}', this.value)" title="مهمته في هذا المعرض فقط" style="background:#051224; color:#fcd34d; border:1px solid rgba(245,176,65,0.45); border-radius:999px; font-family:inherit; font-size:0.71rem; font-weight:800; padding:3px 8px; cursor:pointer;">
-                          <option value="" ${!ovr ? "selected" : ""}>الأساسي (${escapeHtml(getRoleLabel(a.role))})</option>
-                          <option value="sales" ${ovr === "sales" ? "selected" : ""}>💼 ترابيزة سيلز</option>
-                          <option value="usher" ${ovr === "usher" ? "selected" : ""}>🚶 أشرز (اليوم)</option>
-                          <option value="reception" ${ovr === "reception" ? "selected" : ""}>🛎️ ريسبشن (اليوم)</option>
-                          <option value="broker" ${ovr === "broker" ? "selected" : ""}>🏢 بروكر (اليوم)</option>
-                          <option value="exh_manager" ${ovr === "exh_manager" ? "selected" : ""}>🎯 مدير معرض (اليوم)</option>
-                        </select>` : ""}
-                      </div>`;
-                    })
-                    .join("")}
-                </div>
-              </div>`;
-            })
-            .join("") || `<div style="text-align:center; padding:18px; color:var(--text-muted);">لا توجد حسابات مطابقة.</div>`;
-      }
-
-      async function setExhRoleOverride(accId, nextRole) {
-        const exh = getActiveExh();
-        if (!exh) return;
-        const key = `${exh.id}::${accId}`;
-        const nextMap = { ...(state.exhRoleOverrides || {}) };
-        if (!nextRole) delete nextMap[key];
-        else nextMap[key] = nextRole;
-        state.exhRoleOverrides = nextMap;
-        const stEl = document.getElementById("rosterSaveStatus");
-        if (stEl) stEl.textContent = "⏳ جاري حفظ مهمة المعرض...";
-        try {
-          const { error } = await sb.from("system_settings").upsert({
-            key: "exh_role_overrides",
-            value: JSON.stringify(nextMap),
-          });
-          if (error) throw error;
-          if (stEl) stEl.textContent = "✅ تم تحديث مهمة الموظف في هذا المعرض فوراً";
+          if (stEl) stEl.textContent = `✅ تم حفظ ترتيب ترابيزة (${teamName}) لـ (${exh.name})`;
         } catch (err) {
           console.error(err);
           if (stEl) stEl.textContent = "❌ تعذر الحفظ";
-        }
-      }
-
-      async function toggleRosterMember(accId) {
-        const exh = getActiveExh();
-        const acc = state.accounts.find((a) => a.id === accId);
-        if (!exh || !acc) return;
-        const curr = Array.isArray(acc.active_exhibition_ids) ? [...acc.active_exhibition_ids] : [];
-        const has = curr.includes(exh.id);
-        const next = buildExclusiveExhIds(acc, exh.id, !has);
-        acc.active_exhibition_ids = next;
-        renderStaffRosterSection();
-        const stEl = document.getElementById("rosterSaveStatus");
-        stEl.textContent = "⏳ جاري الحفظ...";
-        try {
-          const { error } = await sb.from("accounts").update({ active_exhibition_ids: next }).eq("id", accId);
-          if (error) throw error;
-          stEl.textContent = "✅ تم التحديث فوراً";
-        } catch (err) {
-          console.error(err);
-          stEl.textContent = "❌ تعذر الحفظ";
         }
       }
 
@@ -2852,4 +3017,3 @@
     </script>
   </body>
 </html>
-
