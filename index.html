@@ -1,3 +1,8 @@
+
+
+
+رمز HTML
+prep_admin_v2
 <!doctype html>
 <html lang="ar" dir="rtl">
   <head>
@@ -1104,6 +1109,7 @@
                     <label class="role-check-item"><input type="checkbox" id="repShowOfferChk" checked onchange="updateReportLivePreview()" /> 🎁 تفاصيل العرض</label>
                     <label class="role-check-item"><input type="checkbox" id="repShowNotesChk" checked onchange="updateReportLivePreview()" /> 📝 ملاحظات الجلسة</label>
                     <label class="role-check-item"><input type="checkbox" id="repShowPhoneChk" checked onchange="updateReportLivePreview()" /> 📱 رقم تليفون السيلز</label>
+                    <label class="role-check-item"><input type="checkbox" id="repShowBrokerPhoneChk" checked onchange="updateReportLivePreview()" /> 🏢 رقم تليفون البروكر</label>
                     <label class="role-check-item"><input type="checkbox" id="repShowClientPhoneChk" checked onchange="updateReportLivePreview()" /> 👤 رقم تليفون العميل</label>
                     <label class="role-check-item"><input type="checkbox" id="repShowDateChk" checked onchange="updateReportLivePreview()" /> 📅 التاريخ والوقت</label>
                   </div>
@@ -1149,7 +1155,7 @@
           </div>
         </section>
 
-        <!-- SECTION 9: DEVOLEPOR_ONLY (LOCKED WITH M-A-L-L-A-M) -->
+        <!-- SECTION 9: DEVOLEPOR_ONLY (LOCKED WITH SERVER_VERIFIED) -->
         <section id="secDevOnly" class="prep-section">
           <div id="devLockCard" class="card" style="max-width: 440px; margin: 20px auto; text-align: center">
             <div style="font-size: 2rem; margin-bottom: 8px">🔒</div>
@@ -1268,7 +1274,6 @@
       const SUPABASE_URL = "https://xdvmfjpccmzrwynpentr.supabase.co";
       const SUPABASE_KEY = "sb_publishable_1zDPrrzj5QdaILjGuXZujQ_nNpz3Se_";
       const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-      const DEV_PANEL_PASS = "M-A-L-L-A-M";
 
       const DELEGATABLE_SECTIONS = [
         { id: "secSalesPower", label: "⚡ ترتيب قوة السيلز" },
@@ -1288,7 +1293,21 @@
         showRepPhone: true,
       };
 
+      function getClientRateLimitKey() {
+        try {
+          let k = localStorage.getItem("balmetr_client_key");
+          if (!k) {
+            k = "prep_" + Math.random().toString(36).slice(2, 12) + "_" + Date.now().toString(36);
+            localStorage.setItem("balmetr_client_key", k);
+          }
+          return k;
+        } catch (e) {
+          return "web";
+        }
+      }
+
       const state = {
+        sessionToken: null,
         currentUser: null,
         activeSection: "secSalesPower",
         activeExhibitionId: null,
@@ -1393,20 +1412,33 @@
         btn.disabled = true;
         btn.textContent = "⏳ جاري التحقق...";
         try {
-          const { data, error } = await sb.rpc("smart_login", { p_password: pass });
+          const { data, error } = await sb.rpc("smart_login", {
+            p_password: pass,
+            p_client_key: getClientRateLimitKey(),
+          });
           if (error) throw error;
+          if (data?.status === "RATE_LIMITED") {
+            alert("🚫 " + (data.message || "محاولات كثيرة خاطئة، انتظر دقيقة.")); return;
+          }
           if (data?.status !== "ACCOUNT" || !data.account) {
             alert("❌ كلمة المرور غير صحيحة!");
             return;
           }
+          state.sessionToken = data.session_token || null;
           state.currentUser = data.account;
-          await loadAllPrepData(false);
-          const allowed = getAllowedSections();
-          if (allowed.length === 0) {
-            state.currentUser = null;
-            alert("🔒 هذا الحساب لا يملك صلاحية دخول سيستم التحضير — تواصل مع الإدارة العامة لفتح الصلاحيات.");
-            return;
+          // Check permission BEFORE fetching full accounts/settings
+          if (data.account.role !== "manager") {
+            const { data: permRow } = await sb.from("system_settings").select("value").eq("key", "user_permissions").maybeSingle();
+            try {
+              state.userPermissions = permRow?.value ? JSON.parse(permRow.value) : {};
+            } catch (e) { state.userPermissions = {}; }
+            if (getAllowedSections().length === 0) {
+              state.currentUser = null;
+              alert("🔒 هذا الحساب لا يملك صلاحية دخول سيستم التحضير — تواصل مع الإدارة العامة لفتح الصلاحيات.");
+              return;
+            }
           }
+          await loadAllPrepData(false);
           document.getElementById("loginPassInput").value = "";
           enterPrepWorkspace();
         } catch (err) {
@@ -1420,6 +1452,9 @@
 
       function logoutPrep() {
         if (!confirm("هل تريد تسجيل الخروج؟")) return;
+        const tok = state.sessionToken;
+        if (tok) sb.rpc("logout_session", { p_token: tok }).catch(() => {});
+        state.sessionToken = null;
         state.currentUser = null;
         state.devUnlocked = false;
         document.body.classList.remove("sidebar-active");
@@ -1518,6 +1553,15 @@
             firstSec = sec;
             firstBtn = btn;
           }
+        });
+        document.querySelectorAll("#sidebarNavList .sidebar-group-title").forEach((gt) => {
+          let next = gt.nextElementSibling;
+          let hasVisible = false;
+          while (next && !next.classList.contains("sidebar-group-title")) {
+            if (next.style.display !== "none") { hasVisible = true; break; }
+            next = next.nextElementSibling;
+          }
+          gt.style.display = hasVisible ? "" : "none";
         });
         if (!allowed.has(state.activeSection) && firstSec) {
           switchPrepSection(firstSec, firstBtn);
@@ -1927,7 +1971,7 @@
         ctx.fillText(exh.name, canvas.width / 2, 82);
 
         const qr = qrcode(0, "M");
-        qr.addData(`OFFLINE|${exh.id}`);
+        qr.addData(`BM|OFFLINE|EXH:${exh.id}`);
         qr.make();
         const count = qr.getModuleCount();
         const qrSize = 280;
@@ -1981,10 +2025,13 @@
           <tr>
             <td><strong>${escapeHtml(o.project_name)}</strong> <span class="badge badge-mint">${escapeHtml(o.unit_type || "")}</span></td>
             <td>${escapeHtml(o.area || "-")} | ${escapeHtml(o.total_price || "-")}</td>
-            <td>مقدم: ${escapeHtml(o.down_payment || "-")} | قسط: ${escapeHtml(o.installment || "-")} (${escapeHtml(o.years || "-")})</td>
-            <td><span class="badge badge-gold">${escapeHtml(o.roi || "-")}</span></td>
+            <td>مقدم: ${escapeHtml(o.downpayment || "-")} | قسط: ${escapeHtml(o.installment || "-")} (${escapeHtml(o.years || "-")})</td>
+            <td><span class="badge badge-gold">${escapeHtml(o.expected_roi || "-")}</span></td>
             <td style="font-size:0.76rem;">${escapeHtml(o.details || "-")}</td>
-            <td><button type="button" class="btn btn-danger btn-sm" onclick="deleteTeamOffer('${o.id}')">🗑️</button></td>
+            <td style="white-space:nowrap;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="editTeamOffer('${o.id}')">✏️</button>
+              <button type="button" class="btn btn-danger btn-sm" onclick="deleteTeamOffer('${o.id}')">🗑️</button>
+            </td>
           </tr>`
           )
           .join("");
@@ -1999,15 +2046,16 @@
         if (existing.length >= 20) return alert("⚠️ الحد الأقصى 20 عرض لكل تيم.");
 
         const payload = {
+          id: `off_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
           owner_key: ownerKey,
           project_name: project,
           unit_type: document.getElementById("offerUnitType").value,
           area: (document.getElementById("offerArea").value || "").trim(),
           total_price: (document.getElementById("offerTotal").value || "").trim(),
-          down_payment: (document.getElementById("offerDown").value || "").trim(),
+          downpayment: (document.getElementById("offerDown").value || "").trim(),
           installment: (document.getElementById("offerInstallment").value || "").trim(),
           years: (document.getElementById("offerYears").value || "").trim(),
-          roi: (document.getElementById("offerRoi").value || "").trim(),
+          expected_roi: (document.getElementById("offerRoi").value || "").trim(),
           details: (document.getElementById("offerDetails").value || "").trim(),
         };
         try {
@@ -2022,6 +2070,30 @@
         } catch (err) {
           console.error(err);
           alert("❌ تعذر إضافة العرض: " + (err.message || ""));
+        }
+      }
+
+      async function editTeamOffer(offerId) {
+        const o = state.offers.find((x) => x.id === offerId);
+        if (!o) return;
+        const project_name = (prompt("اسم المشروع:", o.project_name || "") ?? "").trim();
+        if (!project_name) return;
+        const area = (prompt("المساحة:", o.area || "") ?? o.area ?? "").trim();
+        const total_price = (prompt("الإجمالي:", o.total_price || "") ?? o.total_price ?? "").trim();
+        const downpayment = (prompt("المقدم:", o.downpayment || "") ?? o.downpayment ?? "").trim();
+        const installment = (prompt("القسط:", o.installment || "") ?? o.installment ?? "").trim();
+        const years = (prompt("عدد السنوات:", o.years || "") ?? o.years ?? "").trim();
+        const expected_roi = (prompt("العائد المتوقع:", o.expected_roi || "") ?? o.expected_roi ?? "").trim();
+        const details = (prompt("تفاصيل إضافية:", o.details || "") ?? o.details ?? "").trim();
+        const upd = { project_name, area, total_price, downpayment, installment, years, expected_roi, details };
+        try {
+          const { data, error } = await sb.from("offers").update(upd).eq("id", offerId).select().single();
+          if (error) throw error;
+          const idx = state.offers.findIndex((x) => x.id === offerId);
+          if (idx >= 0) state.offers[idx] = data;
+          renderBalmetrOffersSection();
+        } catch (err) {
+          alert("❌ تعذر تعديل العرض: " + (err.message || ""));
         }
       }
 
@@ -2099,7 +2171,15 @@
         let code = (document.getElementById("addAccCode").value || "").trim().toUpperCase();
         if (!code) {
           const pref = role === "developer" ? "D" : role === "usher" ? "U" : role === "reception" ? "R" : "S";
-          code = `${pref}${state.accounts.length + 10}`;
+          let maxN = 10;
+          state.accounts.forEach((a) => {
+            const c = String(a.code || "").toUpperCase();
+            if (c.startsWith(pref)) {
+              const n = parseInt(c.slice(pref.length), 10);
+              if (!isNaN(n) && n > maxN) maxN = n;
+            }
+          });
+          code = `${pref}${maxN + 1}`;
         }
         const pass = (document.getElementById("addAccPass").value || "").trim() || genRandomPass(code);
         const expoRoles = Array.from(document.querySelectorAll("#addAccExpoRoles input:checked")).map((i) => i.value);
@@ -2285,6 +2365,8 @@
         document.getElementById("repShowOfferChk").checked = c.showOfferDetails !== false;
         document.getElementById("repShowNotesChk").checked = c.showNotes !== false;
         document.getElementById("repShowPhoneChk").checked = c.showRepPhone !== false;
+        const brkChk = document.getElementById("repShowBrokerPhoneChk");
+        if (brkChk) brkChk.checked = c.showBrokerPhones !== false;
         document.getElementById("repShowClientPhoneChk").checked = c.showClientPhone !== false;
         document.getElementById("repShowDateChk").checked = c.showDate !== false;
         updateReportLivePreview();
@@ -2302,6 +2384,7 @@
           showOfferDetails: document.getElementById("repShowOfferChk")?.checked !== false,
           showNotes: document.getElementById("repShowNotesChk")?.checked !== false,
           showRepPhone: document.getElementById("repShowPhoneChk")?.checked !== false,
+          showBrokerPhones: document.getElementById("repShowBrokerPhoneChk")?.checked !== false,
           showClientPhone: document.getElementById("repShowClientPhoneChk")?.checked !== false,
           showDate: document.getElementById("repShowDateChk")?.checked !== false,
         };
@@ -2312,31 +2395,44 @@
         if (!box) return;
         const c = getCurrentReportDraft();
         box.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0d9488; padding-bottom:10px; margin-bottom:12px;">
-            <div>
-              <div style="font-size:15px; font-weight:900; color:#051224;">${escapeHtml(c.title)}</div>
-              ${c.subtitle ? `<div style="font-size:11px; color:#475569; font-weight:700;">${escapeHtml(c.subtitle)}</div>` : ""}
+          <div style="position:relative; overflow:hidden; border-radius:10px;">
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0.07; z-index:0;">
+              <img src="Logo_White.png" alt="B.almetr" style="width:240px; filter:invert(1) brightness(0.2); transform:rotate(-16deg);" onerror="this.style.display='none';" />
             </div>
-            <div style="text-align:left; font-size:11px; color:#0f766e; font-weight:800;">
-              <div>كود العميل: #7055</div>
-              ${c.showDate ? `<div>${new Date().toLocaleDateString("ar-EG")}</div>` : ""}
+            <div style="position:relative; z-index:1;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; background:linear-gradient(135deg, #051224 0%, #0d2b49 100%); color:#ffffff; padding:12px 14px; border-radius:10px; border-bottom:3px solid #2dd4bf; margin-bottom:12px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <img src="Logo_White.png" alt="B.almetr" style="height:34px; width:auto; object-fit:contain;" onerror="this.style.display='none';" />
+                  <div>
+                    <div style="font-size:14px; font-weight:900; color:#2dd4bf;">${escapeHtml(c.title)}</div>
+                    ${c.subtitle ? `<div style="font-size:10.5px; color:#cbd5e1; font-weight:700;">${escapeHtml(c.subtitle)}</div>` : ""}
+                  </div>
+                </div>
+                <div style="text-align:left; font-size:10.5px; color:#fcd34d; font-weight:800;">
+                  <div>كود العميل: #7055</div>
+                  ${c.showDate ? `<div style="color:#94a3b8;">${new Date().toLocaleDateString("ar-EG")}</div>` : ""}
+                </div>
+              </div>
+              ${c.headerMessage ? `<div style="background:rgba(240,253,250,0.92); border-right:3px solid #14b8a6; padding:8px 10px; border-radius:6px; font-size:11px; margin-bottom:10px; color:#134e4a;">${escapeHtml(c.headerMessage)}</div>` : ""}
+              <div style="background:rgba(248,250,252,0.92); border:1px solid #cbd5e1; border-radius:8px; padding:9px 11px; margin-bottom:10px; font-size:12px;">
+                <strong>👤 العميل:</strong> أحمد محمد علي ${c.showClientPhone ? `<span dir="ltr" style="color:#475569; margin-right:8px;">(01012345678)</span>` : ""}
+                <div style="font-size:11px; color:#475569; margin-top:3px;">📍 التجمع الخامس • تجاري • الجمعية العقارية</div>
+              </div>
+              <div style="border:1px solid #99f6e4; border-right:4px solid #14b8a6; border-radius:8px; padding:10px; margin-bottom:10px; background:rgba(255,255,255,0.9);">
+                <div style="font-weight:900; font-size:12px; color:#051224;">1. 💼 تيم الجمعية — آية نشات (S14)</div>
+                ${c.showOfferDetails ? `<div style="background:#fffbeb; border:1px solid #fde68a; padding:6px 8px; border-radius:6px; margin-top:5px; font-size:11px;">🎁 <strong>العرض المرشح:</strong> فندق بيرلا — 1 متر — 250K — مقدم 125K</div>` : ""}
+                ${c.showNotes ? `<div style="font-size:11px; color:#475569; margin-top:4px;">📝 ملاحظات: العميل مهتم ومستعد للحجز هذا الأسبوع.</div>` : ""}
+                ${c.showRepPhone ? `<div style="display:inline-block; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:800; margin-top:5px;">📱 تواصل المستشار: 01000000000</div>` : ""}
+              </div>
+              ${c.footerMessage ? `<div style="text-align:center; font-size:11px; color:#334155; padding:6px; border-top:1px dashed #cbd5e1; margin-top:6px;">${escapeHtml(c.footerMessage)}</div>` : ""}
+              <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; background:#051224; color:#ffffff; padding:8px 12px; border-radius:8px; margin-top:8px; font-size:11px; font-weight:800; border-top:2px solid #f5b041;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <img src="Logo_White.png" alt="B.almetr" style="height:18px; width:auto;" onerror="this.style.display='none';" />
+                  <span style="color:#2dd4bf;">B.almetr VIP</span>
+                </div>
+                <span dir="ltr">${[c.hotline ? `📞 ${c.hotline}` : "", c.whatsapp ? `💬 ${c.whatsapp}` : "", c.website ? `🌐 ${c.website}` : ""].filter(Boolean).join("  |  ")}</span>
+              </div>
             </div>
-          </div>
-          ${c.headerMessage ? `<div style="background:#f0fdfa; border-right:3px solid #14b8a6; padding:8px 10px; border-radius:6px; font-size:11px; margin-bottom:10px; color:#134e4a;">${escapeHtml(c.headerMessage)}</div>` : ""}
-          <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:8px; padding:9px 11px; margin-bottom:10px; font-size:12px;">
-            <strong>👤 العميل:</strong> أحمد محمد علي ${c.showClientPhone ? `<span dir="ltr" style="color:#475569; margin-right:8px;">(01012345678)</span>` : ""}
-            <div style="font-size:11px; color:#475569; margin-top:3px;">📍 التجمع الخامس • تجاري • الجمعية العقارية</div>
-          </div>
-          <div style="border:1px solid #99f6e4; border-radius:8px; padding:10px; margin-bottom:10px; background:#ffffff;">
-            <div style="font-weight:900; font-size:12px; color:#0f766e;">1. 💼 تيم الجمعية — آية نشات (S14)</div>
-            ${c.showOfferDetails ? `<div style="background:#fffbeb; border:1px solid #fde68a; padding:6px 8px; border-radius:6px; margin-top:5px; font-size:11px;">🎁 <strong>العرض المرشح:</strong> فندق بيرلا — 1 متر — 250K — مقدم 125K</div>` : ""}
-            ${c.showNotes ? `<div style="font-size:11px; color:#475569; margin-top:4px;">📝 ملاحظات: العميل مهتم ومستعد للحجز هذا الأسبوع.</div>` : ""}
-            ${c.showRepPhone ? `<div style="display:inline-block; background:#e0f2fe; color:#0369a1; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:800; margin-top:5px;">📱 تواصل المستشار: 01000000000</div>` : ""}
-          </div>
-          ${c.footerMessage ? `<div style="text-align:center; font-size:11px; color:#334155; padding:6px; border-top:1px dashed #cbd5e1; margin-top:6px;">${escapeHtml(c.footerMessage)}</div>` : ""}
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px; background:#051224; color:#ffffff; padding:8px 12px; border-radius:8px; margin-top:8px; font-size:11px; font-weight:800;">
-            <span>B.almetr VIP</span>
-            <span dir="ltr">${[c.hotline ? `📞 ${c.hotline}` : "", c.whatsapp ? `💬 ${c.whatsapp}` : "", c.website ? `🌐 ${c.website}` : ""].filter(Boolean).join("  |  ")}</span>
           </div>`;
       }
 
@@ -2462,9 +2558,14 @@
         }
       }
 
-      function unlockDevPanel() {
+      async function unlockDevPanel() {
         const val = (document.getElementById("devPassInput").value || "").trim();
-        if (val !== DEV_PANEL_PASS) return alert("❌ كلمة مرور غير صحيحة!");
+        if (!val || !state.sessionToken) return;
+        const { data, error } = await sb.rpc("verify_dev_panel_pass", {
+          p_token: state.sessionToken,
+          p_pass: val,
+        });
+        if (error || !data?.ok) return alert("❌ " + (data?.message || "كلمة مرور غير صحيحة أو غير مصرّح لك!"));
         state.devUnlocked = true;
         document.getElementById("devPassInput").value = "";
         renderDevOnlySection();
@@ -2478,7 +2579,8 @@
       async function saveDevSignupPass() {
         const val = (document.getElementById("devSignupPassInput").value || "").trim();
         if (!val) return;
-        await sb.from("system_settings").upsert({ key: "developer_signup_pass", value: val });
+        const { error } = await sb.from("system_settings").upsert({ key: "developer_signup_pass", value: val });
+        if (error) return alert("❌ تعذر الحفظ: " + (error.message || ""));
         state.developerSignupPass = val;
         alert("✅ تم حفظ كلمة سر تسجيل المطورين!");
       }
