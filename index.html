@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="ar" dir="rtl">
   <head>
@@ -676,6 +677,71 @@
         background: rgba(20, 184, 166, 0.14);
       }
 
+
+      /* V5 Visual Separation & Collapsible Panels */
+      .card {
+        border: 1.5px solid rgba(45, 212, 191, 0.28);
+        border-top: 3px solid rgba(45, 212, 191, 0.55);
+        margin-bottom: 18px;
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.38);
+      }
+      .station-box {
+        border: 1.5px solid rgba(45, 212, 191, 0.26);
+        border-right: 4px solid var(--primary-bright);
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+      }
+      .station-box.sales-station {
+        border-right-color: var(--gold);
+        border-color: rgba(245, 176, 65, 0.36);
+      }
+      .collapse-card {
+        background: rgba(9, 29, 54, 0.94);
+        border: 1.5px solid rgba(45, 212, 191, 0.3);
+        border-right: 4px solid var(--gold);
+        border-radius: 16px;
+        margin-bottom: 16px;
+        overflow: hidden;
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
+      }
+      .collapse-card.mint-accent {
+        border-right-color: var(--primary-bright);
+      }
+      .collapse-head-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 13px 16px;
+        background: rgba(13, 38, 69, 0.85);
+        border: none;
+        color: #f8fafc;
+        font-family: inherit;
+        font-size: 0.92rem;
+        font-weight: 900;
+        cursor: pointer;
+        text-align: right;
+      }
+      .collapse-head-btn:hover {
+        background: rgba(20, 184, 166, 0.14);
+      }
+      .collapse-pill-arrow {
+        font-size: 0.76rem;
+        color: var(--primary-bright);
+        background: rgba(45, 212, 191, 0.14);
+        border: 1px solid var(--border-strong);
+        padding: 4px 10px;
+        border-radius: 999px;
+      }
+      .collapse-content {
+        display: none;
+        padding: 15px 16px;
+        border-top: 1px solid rgba(45, 212, 191, 0.18);
+      }
+      .collapse-card.open .collapse-content {
+        display: block;
+      }
+
       @media (max-width: 820px) {
         .hover-sidebar {
           width: var(--sidebar-expanded);
@@ -933,11 +999,13 @@
 
         <!-- SECTION 5: ACCOUNTS & TEAMS MANAGEMENT -->
         <section id="secAccounts" class="prep-section">
-          <!-- Teams Management -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">🏷️ إدارة التيمات والأقسام (تحكم مرن: تيم بيع / قسم تنظيمي)</div>
-            </div>
+          <!-- Teams Management (Collapsible) -->
+          <div id="prepTeamsCollapse" class="collapse-card mint-accent">
+            <button type="button" class="collapse-head-btn" onclick="togglePrepCollapse('prepTeamsCollapse')">
+              <span>🏷️ إدارة التيمات والأقسام (إضافة / تعديل / تيم بيع أو تنظيمي)</span>
+              <span class="collapse-pill-arrow" data-arrow="prepTeamsCollapse">اضغط للفتح ▾</span>
+            </button>
+            <div class="collapse-content">
             <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px">
               اضغط على أي تيم لتغيير نوعه: <strong>💼 تيم بيع</strong> يظهر في ترتيب القوة ونسب التوزيع والعروض، أما <strong>🏷️ قسم تنظيمي</strong> (مثل Organizing / Free) فيبقى للتنظيم فقط بدون عروض أو توزيع.
             </p>
@@ -950,13 +1018,16 @@
               <button type="button" class="btn btn-primary" onclick="addNewTeam()">➕ إضافة</button>
             </div>
             <div id="teamsChipsWrap" class="chips-grid"></div>
+            </div>
           </div>
 
-          <!-- Add New Account -->
-          <div class="card">
-            <div class="card-header">
-              <div class="card-title">➕ إضافة حساب جديد (سيلز / أشر / ريسبشن / مطور / بروكر / تيم ليدر)</div>
-            </div>
+          <!-- Add New Account (Collapsible) -->
+          <div id="prepAddAccCollapse" class="collapse-card">
+            <button type="button" class="collapse-head-btn" onclick="togglePrepCollapse('prepAddAccCollapse')">
+              <span>➕ إضافة حساب جديد (سيلز / أشر / ريسبشن / مطور / بروكر / تيم ليدر)</span>
+              <span class="collapse-pill-arrow" data-arrow="prepAddAccCollapse">اضغط للفتح ▾</span>
+            </button>
+            <div class="collapse-content">
             <div class="grid-3" style="margin-bottom: 10px">
               <div>
                 <label class="form-label">الدور الأساسي:</label>
@@ -1037,6 +1108,7 @@
             <button type="button" id="addAccBtn" class="btn btn-primary btn-block" onclick="createNewAccount()">
               ➕ إنشاء الحساب الآن
             </button>
+            </div>
           </div>
 
           <!-- Accounts Table -->
@@ -1051,7 +1123,8 @@
                 <option value="sales">💼 سيلز بالمتر</option>
                 <option value="usher">🚶 أشرز</option>
                 <option value="reception">🛎️ ريسبشن</option>
-                <option value="broker">🏢 بروكر</option>
+                <option value="broker">🏢 بروكر المعرض (ترابيزة)</option>
+                <option value="external_broker">🤝 سمسار (تابع لأدمن بروكر)</option>
                 <option value="team_leader">🎖️ تيم ليدر</option>
                 <option value="exh_manager">🎯 مدير معرض</option>
                 <option value="developer">🏗️ مطورين</option>
@@ -1419,6 +1492,18 @@
           el.className = "sync-badge";
           el.textContent = "✅ متصل لايف";
         }
+      }
+
+      function togglePrepCollapse(id) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const opened = el.classList.toggle("open");
+        const arr = document.querySelector(`[data-arrow="${id}"]`);
+        if (arr) arr.textContent = opened ? "إغلاق ▴" : "اضغط للفتح ▾";
+      }
+
+      function isExternalBroker(acc) {
+        return Boolean(acc && acc.role === "broker" && acc.parent_admin_id);
       }
 
       function accountHasRole(acc, role) {
@@ -1813,17 +1898,18 @@
 
       function getAccountStationInExh(acc, exhId) {
         if (!acc || !exhId) return null;
+        if (isExternalBroker(acc)) return null;
         const inExh = Array.isArray(acc.active_exhibition_ids) && acc.active_exhibition_ids.includes(exhId);
         if (!inExh) return null;
         const effRole = getEffectiveRoleForExh(acc, exhId);
         if (effRole === "reception") return { type: "ROLE", role: "reception", label: "🛎️ الريسبشن" };
         if (effRole === "usher") return { type: "ROLE", role: "usher", label: "🚶 الأشرز" };
         if (effRole === "broker") return { type: "ROLE", role: "broker", label: "🏢 البروكرز" };
-        if (effRole === "exh_manager" || effRole === "team_leader") return { type: "ROLE", role: "exh_manager", label: "🎯 إدارة المعرض" };
-        if (effRole === "developer" || effRole === "dev_sales") return { type: "DEV", role: effRole, label: "🏗️ المطورين" };
-        if (effRole === "sales") {
+        if (effRole === "exh_manager") return { type: "ROLE", role: "exh_manager", label: "🎯 مدير المعرض" };
+        if (effRole === "developer") return { type: "DEV", role: "developer", label: "🏗️ الشركات المطورة" };
+        if (effRole === "sales" || effRole === "team_leader") {
           const teamName = getEffectiveTeamForExh(acc, exhId);
-          return { type: "SALES_TABLE", role: "sales", team: teamName, label: `💼 ترابيزة ${teamName}` };
+          return { type: "SALES_TABLE", role: effRole, team: teamName, label: `💼 ترابيزة ${teamName}` };
         }
         return null;
       }
@@ -1887,7 +1973,7 @@
             <div class="kpi-card"><div class="label">🚶 أشرز</div><div class="val" style="color:#fcd34d;">${usherList.length}</div></div>
             <div class="kpi-card"><div class="label">💼 سيلز الترابيزات</div><div class="val" style="color:#34d399;">${totalTableSales}</div></div>
             <div class="kpi-card"><div class="label">🏢 بروكرز</div><div class="val">${brokerList.length}</div></div>
-            <div class="kpi-card"><div class="label">🏗️ مطورين وسيلزهم</div><div class="val" style="color:#2dd4bf;">${devList.length}</div></div>
+            <div class="kpi-card"><div class="label">🏗️ شركات مطورة</div><div class="val" style="color:#2dd4bf;">${devList.length}</div></div>
           `;
         }
 
@@ -1906,11 +1992,19 @@
                   ? `<span style="font-size:0.77rem; color:var(--text-muted);">${emptyMsg}</span>`
                   : list
                       .map((a) => {
-                        const ovrTag = getExhRoleOverride(exh.id, a.id) && a.role !== roleKey
+                        const ovrTag = !isDev && getExhRoleOverride(exh.id, a.id) && a.role !== roleKey
                           ? `<small style="color:#fcd34d; font-size:0.68rem;">(أصله ${escapeHtml(getRoleLabel(a.role))})</small>`
                           : "";
+                        const devSalesBadge = isDev
+                          ? (() => {
+                              const dsCnt = state.accounts.filter(
+                                (ds) => ds.role === "dev_sales" && ds.parent_admin_id === a.id && Array.isArray(ds.active_exhibition_ids) && ds.active_exhibition_ids.includes(exh.id)
+                              ).length;
+                              return `<small style="color:#fcd34d; font-size:0.68rem;">• ${dsCnt} سيلز</small>`;
+                            })()
+                          : "";
                         return `<span class="station-pill">
-                          <span>${escapeHtml(a.name)} <small style="color:var(--primary-bright);">(${escapeHtml(a.code)})</small> ${ovrTag}</span>
+                          <span>${escapeHtml(a.name)} <small style="color:var(--primary-bright);">(${escapeHtml(a.code)})</small> ${ovrTag}${devSalesBadge}</span>
                           <button type="button" title="إزالة من المعرض" onclick="removeMemberFromExhStation('${a.id}')">✕</button>
                         </span>`;
                       })
@@ -1946,6 +2040,7 @@
                               ${idx === 0 ? `<span class="badge badge-gold" style="font-size:0.66rem;">الأقوى ⭐</span>` : ""}
                               <span class="badge badge-mint" style="font-size:0.7rem;">${escapeHtml(s.code)}</span>
                               <strong style="font-size:0.83rem;">${escapeHtml(s.name)}</strong>
+                              ${accountHasRole(s, "team_leader") ? `<span class="badge badge-gold" style="font-size:0.64rem;">🎖️ تيم ليدر</span>` : ""}
                               ${movedFrom}
                             </div>
                             <div style="display:flex; gap:4px; align-items:center; flex-shrink:0;">
@@ -1972,8 +2067,8 @@
             ${renderSimpleStationBox("🛎️ الريسبشن", "reception", recList, "لم يتم تسكين ريسبشن في هذا المعرض بعد.")}
             ${renderSimpleStationBox("🚶 الأشرز", "usher", usherList, "لم يتم تسكين أشرز في هذا المعرض بعد.")}
             ${renderSimpleStationBox("🏢 البروكرز", "broker", brokerList, "لا يوجد بروكرز مفعلين في هذا المعرض.")}
-            ${renderSimpleStationBox("🎯 إدارة المعرض (مدير معرض / تيم ليدر)", "exh_manager", mgrList, "لا يوجد مدير معرض مفعل هنا.")}
-            ${renderSimpleStationBox("🏗️ الشركات المطورة وسيلز المطورين", "developer", devList, "لم يتم تفعيل شركات مطورة في هذا المعرض بعد.", true)}
+            ${renderSimpleStationBox("🎯 مدير المعرض", "exh_manager", mgrList, "لا يوجد مدير معرض مفعل هنا.")}
+            ${renderSimpleStationBox("🏗️ الشركات المطورة (المطور يسكّن سيلزه بنفسه)", "developer", devList, "لم يتم تفعيل شركات مطورة في هذا المعرض بعد.", true)}
           </div>`;
       }
 
@@ -1987,7 +2082,7 @@
             type === "SALES_TABLE"
               ? `➕ إضافة سيلز لترابيزة (${teamName}) — ${exh.name}`
               : type === "DEV"
-              ? `➕ إضافة مطور / سيلز مطور — ${exh.name}`
+              ? `➕ تفعيل شركة مطورة في (${exh.name})`
               : `➕ إضافة موظف لمحطة (${getRoleLabel(roleKey)}) — ${exh.name}`;
         }
         const srch = document.getElementById("stationPickerSearch");
@@ -2012,9 +2107,9 @@
         const candidates = state.accounts.filter((a) => {
           if (a.role === "manager") return false;
           if (cfg.type === "DEV") {
-            if (a.role !== "developer" && a.role !== "dev_sales") return false;
+            if (a.role !== "developer") return false;
           } else {
-            if (a.role === "developer" || a.role === "dev_sales" || a.role === "admin_broker" || a.role === "influencer") return false;
+            if (a.role === "developer" || a.role === "dev_sales" || a.role === "admin_broker" || a.role === "influencer" || isExternalBroker(a)) return false;
           }
           // Skip people already in THIS exact station
           const curSt = getAccountStationInExh(a, exh.id);
@@ -2031,7 +2126,7 @@
         candidates.sort((a, b) => {
           const score = (x) => {
             let s = 0;
-            if (cfg.type === "SALES_TABLE" && x.team === cfg.team && x.role === "sales") s += 100;
+            if (cfg.type === "SALES_TABLE" && x.team === cfg.team && (x.role === "sales" || x.role === "team_leader")) s += 100;
             else if (cfg.type === "ROLE" && x.role === cfg.role) s += 100;
             if (!getAccountStationInExh(x, exh.id) && !isAssignedToAnotherVisibleExh(x, exh.id)) s += 20;
             return s;
@@ -2087,12 +2182,12 @@
           delete nextRoleOv[key];
           delete nextTeamOv[key];
         } else if (cfg.type === "SALES_TABLE") {
-          if (acc.role === "sales") delete nextRoleOv[key];
+          if (acc.role === "sales" || acc.role === "team_leader") delete nextRoleOv[key];
           else nextRoleOv[key] = "sales";
           if (acc.team === cfg.team) delete nextTeamOv[key];
           else nextTeamOv[key] = cfg.team;
         } else {
-          if (acc.role === cfg.role || (cfg.role === "exh_manager" && acc.role === "team_leader")) delete nextRoleOv[key];
+          if (acc.role === cfg.role) delete nextRoleOv[key];
           else nextRoleOv[key] = cfg.role;
           delete nextTeamOv[key];
         }
@@ -2560,7 +2655,13 @@
         const rFilt = document.getElementById("accRoleFilter")?.value || "ALL";
         const list = state.accounts.filter((a) => {
           if (a.role === "manager") return false;
-          if (rFilt !== "ALL" && a.role !== rFilt && !accountHasRole(a, rFilt)) return false;
+          if (rFilt === "external_broker") {
+            if (!isExternalBroker(a)) return false;
+          } else if (rFilt === "broker") {
+            if (isExternalBroker(a) || (a.role !== "broker" && !accountHasRole(a, "broker"))) return false;
+          } else if (rFilt !== "ALL" && a.role !== rFilt && !accountHasRole(a, rFilt)) {
+            return false;
+          }
           if (q && !`${a.name} ${a.code} ${a.team || ""}`.toLowerCase().includes(q)) return false;
           return true;
         });
@@ -2577,7 +2678,14 @@
                 <td><span class="badge badge-mint">${escapeHtml(a.code)}</span></td>
                 <td style="font-weight:800;">${escapeHtml(a.name)}</td>
                 <td>
-                  <div>${escapeHtml(getRoleLabel(a.role))} ${a.team ? `— <span style="color:var(--primary-bright);">${escapeHtml(a.team)}</span>` : ""}</div>
+                  <div>${
+                    isExternalBroker(a)
+                      ? (() => {
+                          const par = state.accounts.find((x) => x.id === a.parent_admin_id);
+                          return `🤝 سمسار <span style="color:#fcd34d;">(تابع لـ ${escapeHtml(par?.name || "أدمن بروكر")})</span>`;
+                        })()
+                      : `${escapeHtml(getRoleLabel(a.role))} ${a.team ? `— <span style="color:var(--primary-bright);">${escapeHtml(a.team)}</span>` : ""}`
+                  }</div>
                   ${extras ? `<div style="margin-top:3px;">${extras}</div>` : ""}
                 </td>
                 <td><code style="color:#fcd34d;" dir="ltr">${escapeHtml(a.password || "-")}</code></td>
@@ -2738,8 +2846,8 @@
         const c = getCurrentReportDraft();
         box.innerHTML = `
           <div style="position:relative; overflow:hidden; border-radius:10px;">
-            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0.07; z-index:0;">
-              <img src="Logo_White.png" alt="B.almetr" style="width:240px; filter:invert(1) brightness(0.2); transform:rotate(-16deg);" onerror="this.style.display='none';" />
+            <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; opacity:0.13; mix-blend-mode:multiply; z-index:20;">
+              <img src="Logo_White.png" alt="B.almetr" style="width:265px; filter:invert(1) brightness(0.12); transform:rotate(-18deg);" onerror="this.style.display='none';" />
             </div>
             <div style="position:relative; z-index:1;">
               <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; background:linear-gradient(135deg, #051224 0%, #0d2b49 100%); color:#ffffff; padding:12px 14px; border-radius:10px; border-bottom:3px solid #2dd4bf; margin-bottom:12px;">
